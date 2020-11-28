@@ -1,4 +1,6 @@
 export type RootStackParamList = {
+  Splash: undefined;
+  Auth: undefined;
   Root: undefined;
   NotFound: undefined;
 };

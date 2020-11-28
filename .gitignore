@@ -1,0 +1,6 @@
+# ide
+.vscode
+
+# misc
+yarn-error.log
+node_modules

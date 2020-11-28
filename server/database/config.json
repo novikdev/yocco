@@ -1,0 +1,10 @@
+{
+  "development": {
+    "username": "admin",
+    "password": "yoursecretpassword",
+    "database": "instaspace",
+    "host": "127.0.0.1",
+    "dialect": "postgres",
+    "migrationStorageTableName": "sequelize_meta"
+  }
+}
