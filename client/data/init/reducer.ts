@@ -1,10 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { setInitData } from './actions';
-import { AuthData, User } from './types';
+import { AuthData } from './types';
 
 export type InitState = AuthData & {
   isAppInitialized: boolean;
-  user?: User;
 };
 
 const initialState: InitState = {

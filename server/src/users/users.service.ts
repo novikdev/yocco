@@ -1,13 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import { InstagramAccount } from '../instagram-accounts/models/instagram-account.model';
+import { UserDto } from './dtos/user.dto';
 import { IUser } from './user.interfaces';
 import { User } from './user.model';
+import { Sequelize } from 'sequelize-typescript';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User)
     private userModel: typeof User,
+    private readonly sequelize: Sequelize,
   ) {}
 
   create(userData: Omit<IUser, 'id'>): Promise<User> {
@@ -21,9 +25,62 @@ export class UsersService {
     });
   }
 
+  async getDtoById(id: number): Promise<UserDto | null> {
+    const user = await this.userModel.findOne({
+      where: { id },
+      include: [
+        {
+          model: InstagramAccount,
+          through: {
+            where: {
+              isDefault: true,
+            },
+          },
+        },
+      ],
+    });
+    return user && new UserDto(user);
+  }
+
   getByFacebookId(facebookId: string): Promise<User> {
     return this.userModel.findOne({
       where: { facebookId },
+    });
+  }
+
+  async setDefaultIgAccount(userId: number, newDefaultIgAccountId: number): Promise<void> {
+    const user = await this.userModel.findOne({
+      where: { id: userId },
+      include: [
+        {
+          model: InstagramAccount,
+          through: {
+            where: {
+              isDefault: true,
+            },
+          },
+        },
+      ],
+    });
+
+    if (!user) {
+      throw new Error("Couldn't find user with id=" + userId);
+    }
+
+    const currentDefaultIgAccount = user.instagramAccounts[0];
+
+    await this.sequelize.transaction(async (transaction) => {
+      if (currentDefaultIgAccount) {
+        await user.$add('instagramAccounts', currentDefaultIgAccount, {
+          transaction,
+          through: { isDefault: null },
+        });
+      }
+
+      await user.$add('instagramAccounts', newDefaultIgAccountId, {
+        transaction,
+        through: { isDefault: true },
+      });
     });
   }
 }

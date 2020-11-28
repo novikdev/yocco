@@ -6,7 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SequelizeModule } from '@nestjs/sequelize';
-import { User } from './users/user.model';
+import { InstagramAccountsModule } from './instagram-accounts/instagram-accounts.module';
 
 @Module({
   imports: [
@@ -15,22 +15,29 @@ import { User } from './users/user.model';
     SequelizeModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        dialect: 'postgres',
-        host: 'localhost',
-        port: 5432,
-        username: configService.get<string>('POSTGRES_USER'),
-        password: configService.get<string>('POSTGRES_PASSWORD'),
-        database: configService.get<string>('POSTGRES_DB'),
-        models: [User],
-        define: {
-          underscored: true,
-        },
-      }),
+      useFactory: (configService: ConfigService) => {
+        const isLoggingEnabled = configService.get<string>('DB_LOGGER_ENABLED') === 'true';
+        return {
+          dialect: 'postgres',
+          host: 'localhost',
+          port: 5432,
+          username: configService.get<string>('POSTGRES_USER'),
+          password: configService.get<string>('POSTGRES_PASSWORD'),
+          database: configService.get<string>('POSTGRES_DB'),
+          autoLoadModels: true,
+          define: {
+            underscored: true,
+          },
+          synchronize: true,
+          logging: isLoggingEnabled && console.log,
+          logQueryParameters: isLoggingEnabled,
+        };
+      },
     }),
     AuthModule,
     UsersModule,
     FacebookModule,
+    InstagramAccountsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

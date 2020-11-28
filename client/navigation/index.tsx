@@ -9,7 +9,8 @@ import { Auth } from '../screens/Auth';
 import { RootStackParamList } from '../types';
 import BottomTabNavigator from './BottomTabNavigator';
 import LinkingConfiguration from './LinkingConfiguration';
-import { selectUser } from '@data/init/selectors';
+import { selectUser } from '@data/user/selectors';
+import { SelectDefaultIgAccount } from '../screens/SelectDefaultIgAccount';
 
 // If you are not familiar with React Navigation, we recommend going through the
 // "Fundamentals" guide: https://reactnavigation.org/docs/getting-started
@@ -36,6 +37,10 @@ function RootNavigator() {
       {user ? (
         <>
           <Stack.Screen name="Root" component={BottomTabNavigator} />
+          <Stack.Screen
+            name="SelectDefaultIgAccountModal"
+            component={SelectDefaultIgAccount.Modal}
+          />
           <Stack.Screen name="NotFound" component={NotFound} options={{ title: 'Oops!' }} />
         </>
       ) : (

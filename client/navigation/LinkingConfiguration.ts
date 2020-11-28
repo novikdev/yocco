@@ -1,5 +1,6 @@
 import * as Linking from 'expo-linking';
 
+// TODO: research this part and configure correctly
 export default {
   prefixes: [Linking.makeUrl('/')],
   config: {
@@ -8,7 +9,7 @@ export default {
         screens: {
           TabOne: {
             screens: {
-              TabOneScreen: 'one',
+              InstagramAccount: 'instagram_account',
             },
           },
           TabTwo: {
