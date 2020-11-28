@@ -6,7 +6,7 @@ import {
   UnauthorizedException,
   NotFoundException,
 } from '@nestjs/common';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from '../users/users.service';
 import { FacebookAuthGuard, RequestWithUserJwt } from './facebook-auth.guard';
 import { JwtAuthGuard, RequestWithUserId } from './jwt-auth.guard';
 
@@ -23,7 +23,6 @@ export class AuthController {
   @Get('facebook/callback')
   @UseGuards(FacebookAuthGuard)
   facebookLoginCallback(@Request() req: RequestWithUserJwt) {
-    console.log('facebookLoginCallback');
     const { jwt } = req.user;
     if (jwt) {
       return { success: true, jwt };

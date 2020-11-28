@@ -1,15 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Font from 'expo-font';
 import { nanoid } from 'nanoid/async/index.native';
-import { all, call, put, takeLatest } from 'redux-saga/effects';
+import { all, call, put, take, takeLatest } from 'redux-saga/effects';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SagaIterator } from 'redux-saga';
 import * as actions from './actions';
-import { Auth } from '@services/api/auth';
-import { initializeApiInterceptor } from '@services/api/api';
-import { AuthData, User } from './types';
+import { initializeApiInterceptor } from '@services/api';
+import { AuthData } from './types';
 import { AnyAction } from '@reduxjs/toolkit';
-import { Alert } from 'react-native';
+import { loadUser, loadUserFinish } from '@data/user/actions';
 
 const AUTH_DATA_KEY = 'auth';
 
@@ -18,7 +17,6 @@ const isAuthDataSetting = ({ type, payload }: AnyAction): boolean =>
 
 export function* initSaga(): SagaIterator {
   yield takeLatest(isAuthDataSetting, setAuthData);
-  yield takeLatest(actions.loadUser, loadUser);
 
   // uncomment to reset AsyncStorage on app start
   // yield call(AsyncStorage.removeItem, AUTH_DATA_KEY);
@@ -41,11 +39,8 @@ export function* initSaga(): SagaIterator {
     yield put(actions.setInitData({ jwt, uniqueId }));
 
     if (jwt) {
-      const user: User = yield call(Auth.getMe);
-
-      if (user) {
-        yield put(actions.setInitData({ user }));
-      }
+      yield put(loadUser('silent'));
+      yield take(loadUserFinish);
     }
   } catch (err) {
     console.error('Failed to initialize app.\n', err.message);
@@ -66,15 +61,4 @@ function* setAuthData(action: ReturnType<typeof actions.setInitData>) {
 
   initializeApiInterceptor(authData);
   yield call(AsyncStorage.mergeItem, AUTH_DATA_KEY, JSON.stringify(authData));
-}
-
-function* loadUser() {
-  try {
-    const user: User = yield call(Auth.getMe);
-    if (user) {
-      yield put(actions.setInitData({ user }));
-    }
-  } catch (err) {
-    Alert.alert('Failed to load user information', err.message);
-  }
 }

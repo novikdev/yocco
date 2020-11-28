@@ -2,8 +2,8 @@ import * as React from 'react';
 import { AuthParamList } from './types';
 
 import { createStackNavigator } from '@react-navigation/stack';
-import { Login } from './subscreens/Login';
-import { Modal } from './subscreens/Modal';
+import { Login } from './screens/Login';
+import { Modal } from './screens/Modal';
 
 const AuthStack = createStackNavigator<AuthParamList>();
 

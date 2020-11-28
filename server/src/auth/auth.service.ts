@@ -1,9 +1,11 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { sign } from 'jsonwebtoken';
-import { UsersService } from '../users/users.service';
 import { Profile } from 'passport-facebook';
-import { FacebookService } from '../facebook/facebook.service';
 import { ConfigService } from '@nestjs/config';
+
+import { UsersService } from '../users/users.service';
+import { FacebookService } from '../facebook/facebook.service';
+import { InstagramAccountsService } from '../instagram-accounts/instagram-accounts.service';
 
 @Injectable()
 export class AuthService {
@@ -12,6 +14,7 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly fbService: FacebookService,
+    private readonly igAccountsService: InstagramAccountsService,
     private readonly configService: ConfigService,
   ) {
     this.JWT_SECRET_KEY = configService.get<string>('JWT_SECRET_KEY') ?? '';
@@ -32,10 +35,14 @@ export class AuthService {
       } else {
         user = await this.usersService.create({
           email: profile.emails?.[0].value,
+          name: profile.name?.givenName ?? 'User',
+          surname: profile.name?.familyName ?? '',
           gender: profile.gender,
           facebookId: profile.id,
           facebookAccessToken: longLivedAccessToken,
         });
+
+        await this.igAccountsService.syncWithFacebook(user.id);
       }
 
       const payload = {

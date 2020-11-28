@@ -8,7 +8,7 @@ export const selectIsAppInitialized = createSelector(
   selectInitData,
   ({ isAppInitialized }) => isAppInitialized
 );
-export const selectUser = createSelector(selectInitData, ({ user }) => user);
+
 export const selectAuthData = createSelector(selectInitData, ({ jwt, uniqueId }) => ({
   jwt,
   uniqueId,
