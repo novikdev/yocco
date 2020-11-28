@@ -1,15 +1,15 @@
 import * as React from 'react';
 import { StyleSheet } from 'react-native';
 
-import EditScreenInfo from '../components/EditScreenInfo';
-import { Text, View } from '../components/Themed';
+import { Text, View } from '@components/Themed';
+import { useSelector } from 'react-redux';
+import { selectUser } from '@data/init/selectors';
 
 export default function TabOneScreen() {
+  const user = useSelector(selectUser)!;
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tab One 1</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="/screens/TabOneScreen.js" />
+      <Text style={styles.title}>Hello, {user.email}!</Text>
     </View>
   );
 }
@@ -23,10 +23,5 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-  },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
   },
 });
