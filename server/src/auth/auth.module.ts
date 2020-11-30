@@ -8,10 +8,19 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
 import { InstagramAccountsModule } from '../instagram-accounts/instagram-accounts.module';
+import { SequelizeModule } from '@nestjs/sequelize';
+import { AuthToken } from './auth-token.model';
 
 @Module({
   controllers: [AuthController],
-  imports: [UsersModule, PassportModule, FacebookModule, InstagramAccountsModule, ConfigModule],
+  imports: [
+    SequelizeModule.forFeature([AuthToken]),
+    UsersModule,
+    PassportModule,
+    FacebookModule,
+    InstagramAccountsModule,
+    ConfigModule,
+  ],
   providers: [AuthService, FacebookStrategy, JwtStrategy],
 })
 export class AuthModule {}

@@ -1,3 +1,4 @@
+import { Request } from 'express';
 import { Strategy, Profile } from 'passport-facebook';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
@@ -17,17 +18,24 @@ export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
       callbackURL: 'http://localhost:3000/auth/facebook/callback',
       scope: 'email,pages_show_list,pages_read_engagement',
       profileFields: ['emails', 'name'],
+      passReqToCallback: true,
     });
   }
 
   async validate(
+    req: Request,
     accessToken: string,
     refreshToken: string,
     profile: Profile,
     done: Done,
   ): Promise<void> {
     try {
-      const jwt: string = await this.authService.validateFacebookLogin(profile, accessToken);
+      const deviceId = this.authService.getDeviceIdFromRequest(req);
+      const jwt: string = await this.authService.validateFacebookLogin(
+        profile,
+        accessToken,
+        deviceId,
+      );
       const user = {
         jwt,
       };

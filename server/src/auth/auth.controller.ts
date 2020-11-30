@@ -7,12 +7,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
+import { AuthService } from './auth.service';
 import { FacebookAuthGuard, RequestWithUserJwt } from './facebook-auth.guard';
 import { JwtAuthGuard, RequestWithUserId } from './jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly authService: AuthService,
+  ) {}
 
   @Get('facebook')
   @UseGuards(FacebookAuthGuard)
@@ -40,5 +44,11 @@ export class AuthController {
     } catch {
       throw new NotFoundException();
     }
+  }
+
+  @Get('logout')
+  @UseGuards(JwtAuthGuard)
+  async logout(@Request() req: RequestWithUserId) {
+    return this.authService.logout(req.user.tokenId);
   }
 }

@@ -3,7 +3,6 @@ import { IUser, Users } from '@services/api/users';
 import { Alert } from 'react-native';
 import { call, put, select, takeLatest } from 'redux-saga/effects';
 import * as actions from './actions';
-import { selectDefaultIgAccount } from './selectors';
 
 function* loadUser({ payload: mode }: ReturnType<typeof actions.loadUser>) {
   try {

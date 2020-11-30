@@ -2,7 +2,7 @@ import * as React from 'react';
 import { ScrollView, View } from 'react-native';
 import { Text } from '@components/Text';
 
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { selectUser } from '@data/user/selectors';
 import { ScreenContainer } from '@components/ScreenContainer';
 import { theme } from '@services/theme';
@@ -12,8 +12,10 @@ import { ProfileHeader } from '../components/ProfileHeader';
 import { ProfileFooter } from '../components/ProfileFooter';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { logout } from '@data/init/actions';
 
 export function Profile() {
+  const dispatch = useDispatch();
   const navigation = useNavigation();
 
   const user = useSelector(selectUser)!;
@@ -30,7 +32,7 @@ export function Profile() {
         <MenuItem onPress={() => navigation.navigate('SelectDefaultIgAccount', { mode: 'edit' })}>
           <Text size="h4">Аккаунт по умолчанию</Text>
         </MenuItem>
-        <MenuItem onPress={() => null}>
+        <MenuItem onPress={() => dispatch(logout())}>
           <Text size="h4">Выйти</Text>
         </MenuItem>
         <ProfileFooter>
