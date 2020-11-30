@@ -3,6 +3,7 @@ import {
   Column,
   CreatedAt,
   DeletedAt,
+  HasMany,
   Model,
   Table,
   UpdatedAt,
@@ -10,6 +11,7 @@ import {
 import { UnderscoredIndex } from '@common/decorators';
 import { UserInstagramAccount } from '../instagram-accounts/models/user-instagram-account.model';
 import { InstagramAccount } from '../instagram-accounts/models/instagram-account.model';
+import { AuthToken } from 'src/auth/auth-token.model';
 
 @Table({
   tableName: 'users',
@@ -49,6 +51,9 @@ export class User extends Model<User> {
 
   @BelongsToMany(() => InstagramAccount, () => UserInstagramAccount)
   instagramAccounts: Array<InstagramAccount & { UserInstagramAccount: UserInstagramAccount }>;
+
+  @HasMany(() => AuthToken)
+  authTokens: Array<AuthToken>;
 
   @CreatedAt createdAt: Date;
 

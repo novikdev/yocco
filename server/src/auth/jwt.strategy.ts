@@ -1,30 +1,41 @@
+import { Request } from 'express';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy, VerifiedCallback } from 'passport-jwt';
+import { JwtPayload } from './auth.types';
+import { AuthService } from './auth.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly authService: AuthService,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: configService.get<string>('JWT_SECRET_KEY'),
       ignoreExpiration: true,
+      passReqToCallback: true,
     });
   }
 
-  async validate(payload: { userId: string }, done: VerifiedCallback) {
+  async validate(req: Request, jwtPayload: JwtPayload, done: VerifiedCallback) {
     try {
-      // You could add a function to the authService to verify the claims of the token:
-      // i.e. does the user still have the roles that are claimed by the token
-      //const validClaims = await this.authService.verifyTokenClaims(payload);
+      const deviceId = this.authService.getDeviceIdFromRequest(req);
 
-      //if (!validClaims)
-      //    return done(new UnauthorizedException('invalid token claims'), false);
+      const isDeviceIdCorrect = this.authService.isDeviceIdCorrect(jwtPayload.jti, deviceId);
+      if (!isDeviceIdCorrect) {
+        throw new Error('device id and jwt are not matched');
+      }
 
-      done(null, { id: payload.userId });
+      if (!deviceId && this.authService.isExpired(jwtPayload.exp)) {
+        throw new Error('token is expired');
+      }
+
+      return done(null, { id: jwtPayload.sub, tokenId: jwtPayload.jti });
     } catch (err) {
-      throw new UnauthorizedException('unauthorized', err.message);
+      return done(new UnauthorizedException('unauthorized', err.message), false);
     }
   }
 }

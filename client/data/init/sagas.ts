@@ -9,6 +9,8 @@ import { initializeApiInterceptor } from '@services/api';
 import { AuthData } from './types';
 import { AnyAction } from '@reduxjs/toolkit';
 import { loadUser, loadUserFinish } from '@data/user/actions';
+import { Auth } from '@services/api/auth';
+import { Alert } from 'react-native';
 
 const AUTH_DATA_KEY = 'auth';
 
@@ -17,6 +19,7 @@ const isAuthDataSetting = ({ type, payload }: AnyAction): boolean =>
 
 export function* initSaga(): SagaIterator {
   yield takeLatest(isAuthDataSetting, setAuthData);
+  yield takeLatest(actions.logout, logout);
 
   // uncomment to reset AsyncStorage on app start
   // yield call(AsyncStorage.removeItem, AUTH_DATA_KEY);
@@ -61,4 +64,34 @@ function* setAuthData(action: ReturnType<typeof actions.setInitData>) {
 
   initializeApiInterceptor(authData);
   yield call(AsyncStorage.mergeItem, AUTH_DATA_KEY, JSON.stringify(authData));
+}
+
+function confirmLagout() {
+  return new Promise<boolean>((resolve) => {
+    Alert.alert('Вы точно хотите выйти из приложения?', '', [
+      {
+        text: 'Да',
+        onPress: () => {
+          resolve(true);
+        },
+      },
+      {
+        text: 'Нет',
+        onPress: () => {
+          resolve(false);
+        },
+      },
+    ]);
+  });
+}
+
+function* logout() {
+  const confirmed: boolean = yield call(confirmLagout);
+  if (!confirmed) {
+    return;
+  }
+  yield call(Auth.logout);
+  yield call(AsyncStorage.removeItem, AUTH_DATA_KEY);
+  yield put(actions.confirmLogout());
+  yield call(initSaga);
 }
