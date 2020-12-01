@@ -30,6 +30,7 @@
     "@nestjs/passport": "^7.1.0",
     "@nestjs/platform-express": "^7.5.1",
     "@nestjs/sequelize": "^0.1.1",
+    "@nestjs/swagger": "^4.7.5",
     "class-transformer": "^0.3.1",
     "fb": "^2.0.0",
     "jsonwebtoken": "^8.5.1",
@@ -41,7 +42,8 @@
     "rimraf": "^3.0.2",
     "rxjs": "^6.6.3",
     "sequelize": "^5.22.3",
-    "sequelize-typescript": "^1.1.0"
+    "sequelize-typescript": "^1.1.0",
+    "swagger-ui-express": "^4.1.5"
   },
   "devDependencies": {
     "@nestjs/cli": "^7.5.1",

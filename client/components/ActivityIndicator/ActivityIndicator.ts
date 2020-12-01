@@ -1,3 +1,4 @@
+import { theme } from '@services/theme';
 import styled from 'styled-components/native';
 
 export const ActivityIndicator = styled.ActivityIndicator`
@@ -9,3 +10,8 @@ export const ActivityIndicator = styled.ActivityIndicator`
   align-items: center;
   justify-content: center;
 `;
+
+ActivityIndicator.defaultProps = {
+  color: theme.colors.lightPurple,
+  size: 'large',
+};
