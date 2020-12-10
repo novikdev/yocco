@@ -1,6 +1,6 @@
 ---
 name: Отчёт об ошибке
-about: ''
+about: Отчёт об ошибке
 title: ''
 labels: ''
 assignees: ''
