@@ -7,7 +7,12 @@ import {
   Model,
   Table,
   UpdatedAt,
+  HasMany,
+  BelongsToMany,
 } from 'sequelize-typescript';
+import { User } from '../../users/user.model';
+import { IgAccountHourStats } from './ig-account-hour-stats.model';
+import { UserInstagramAccount } from './user-instagram-account.model';
 
 @Table({
   tableName: 'instagram_accounts',
@@ -23,9 +28,15 @@ export class InstagramAccount extends Model<InstagramAccount> {
   @UnderscoredIndex
   @Column({
     allowNull: false,
-    field: 'facebook_id',
+    field: 'fb_ig_account_id',
   })
-  facebookId: string;
+  fbIgAccountId: string;
+
+  @Column({
+    allowNull: false,
+    field: 'fb_ig_business_account_id',
+  })
+  fbIgBusinessAccountId: string;
 
   @Column({
     allowNull: false,
@@ -41,9 +52,15 @@ export class InstagramAccount extends Model<InstagramAccount> {
 
   @Column({
     allowNull: false,
-    field: 'facebook_access_token',
+    field: 'fb_access_token',
   })
-  facebookAccessToken: string;
+  fbAccessToken: string;
+
+  @BelongsToMany(() => User, () => UserInstagramAccount)
+  user: User[];
+
+  @HasMany(() => IgAccountHourStats)
+  stats: Array<IgAccountHourStats>;
 
   @CreatedAt createdAt: Date;
 

@@ -1,6 +1,7 @@
 export enum LoadingStatus {
   Idle = 'idle',
-  Pending = 'pending',
+  Loading = 'loading',
+  LoadingNextPage = 'loading_next_page',
   Success = 'success',
   Fail = 'fail',
 }

@@ -23,9 +23,9 @@ export class UserInstagramAccount extends Model<UserInstagramAccount> {
 
   @ForeignKey(() => InstagramAccount)
   @Column({
-    field: 'instagram_account_id',
+    field: 'ig_account_id',
   })
-  instagramAccountId: number;
+  igAccountId: number;
 
   @Column({
     field: 'is_default',

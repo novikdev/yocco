@@ -7,11 +7,13 @@ import { UsersModule } from './users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { InstagramAccountsModule } from './instagram-accounts/instagram-accounts.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
     // TODO: add config validations (https://docs.nestjs.com/techniques/configuration#schema-validation)
     ConfigModule.forRoot(),
+    ScheduleModule.forRoot(),
     SequelizeModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

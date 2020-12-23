@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { SelectDefaultIgAccount } from './components/SelectDefaultIgAccount';
 import { ScreenContainer } from '@components/ScreenContainer';
 import { SafeAreaView } from 'react-native-safe-area-context';

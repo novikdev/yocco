@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { WebView, WebViewNavigation } from 'react-native-webview';
 import { Auth } from '@services/api/auth';
 import { useDispatch } from 'react-redux';

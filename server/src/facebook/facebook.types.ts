@@ -15,10 +15,27 @@ export type FbPaginated<T> = {
   };
 };
 
+export interface IIgAccountMetricValue {
+  value: number;
+  end_time: string;
+}
+
+export interface IIgAccountMetric {
+  name: string;
+  period: string;
+  title: string;
+  description: string;
+  id: string;
+  values: IIgAccountMetricValue[];
+}
+
 export interface IFbPage {
   id: string;
   name: string;
   access_token: string;
+  instagram_business_account: {
+    id: string;
+  };
 }
 
 export interface IFbIgAccount {
@@ -28,8 +45,9 @@ export interface IFbIgAccount {
 }
 
 export interface IIgAccount {
-  facebookId: string;
+  fbIgAccountId: string;
+  fbIgBusinessAccountId: string;
   username: string;
   profilePicture: string;
-  facebookAccessToken: string;
+  fbAccessToken: string;
 }

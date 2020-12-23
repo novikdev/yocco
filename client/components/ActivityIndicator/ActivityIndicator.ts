@@ -12,6 +12,6 @@ export const ActivityIndicator = styled.ActivityIndicator`
 `;
 
 ActivityIndicator.defaultProps = {
-  color: theme.colors.lightPurple,
+  color: theme.colors.darkPurple,
   size: 'large',
 };

@@ -6,10 +6,11 @@ import { InstagramAccount } from './models/instagram-account.model';
 import { InstagramAccountsController } from './instagram-accounts.controller';
 import { InstagramAccountsService } from './instagram-accounts.service';
 import { UserInstagramAccount } from './models/user-instagram-account.model';
+import { IgAccountHourStats } from './models/ig-account-hour-stats.model';
 
 @Module({
   imports: [
-    SequelizeModule.forFeature([InstagramAccount, UserInstagramAccount]),
+    SequelizeModule.forFeature([InstagramAccount, UserInstagramAccount, IgAccountHourStats]),
     UsersModule,
     FacebookModule,
   ],

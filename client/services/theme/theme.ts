@@ -5,7 +5,7 @@ export const theme = {
     black: '#151515',
     darkPurple: '#9145F2',
     lightPurple: '#f4ebff',
-    lightGrey: '#E0E0E0',
+    lightGrey: '#e8ecee',
     darkGrey: '#616161',
     bgColor: '#ededed',
   },

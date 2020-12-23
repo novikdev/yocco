@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import * as React from 'react';
+import React from 'react';
 import { Profile } from '../screens/Profile';
 
 import { IgAccountStats } from '../screens/IgAccountStats';
