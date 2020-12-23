@@ -1,1 +1,1 @@
-export * from './undescored-index.decorator';
+export * from './underscored-index.decorator';

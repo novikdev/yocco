@@ -1,4 +1,3 @@
-import { patchUser } from '@data/user/actions';
 import { IInstagramAccount, InstagramAccounts } from '@services/api/instagram-accounts';
 import { call, put, takeLatest } from 'redux-saga/effects';
 import * as actions from './actions';

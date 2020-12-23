@@ -6,6 +6,15 @@ import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { Done } from './auth.types';
 
+const scopes = [
+  'email',
+  'pages_show_list', // для получения спсика страниц доступных fb пользователю (GET /{fb-user-id}/pages)
+  'pages_read_engagement',
+  'instagram_basic', // для получения подписчиков (GET /{ig-account-id})
+  'instagram_manage_insights', // для получения количества новых подписчиков (GET /{ig-account-id}/insights)
+  'ads_management', // для получения количества новых подписчиков, если доступ к странице предоставлен через Бизнес-менеджер (GET /{ig-account-id}/insights)
+  'business_management', // для получения количества новых подписчиков, если доступ к странице предоставлен через Бизнес-менеджер (GET /{ig-account-id}/insights)
+];
 @Injectable()
 export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
   constructor(
@@ -16,7 +25,7 @@ export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
       clientID: configService.get<string>('FACEBOOK_APP_ID'),
       clientSecret: configService.get<string>('FACEBOOK_APP_SECRET'),
       callbackURL: 'http://localhost:3000/auth/facebook/callback',
-      scope: 'email,pages_show_list,pages_read_engagement',
+      scope: scopes.join(','),
       profileFields: ['emails', 'name'],
       passReqToCallback: true,
     });

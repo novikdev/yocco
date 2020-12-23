@@ -7,7 +7,9 @@ import {
   IFbUserAccessTokenResponse,
   IFbIgAccount,
   IIgAccount,
-} from './facebook.interfaces';
+  IIgAccountMetric,
+  IIgAccountMetricValue,
+} from './facebook.types';
 
 @Injectable()
 export class FacebookService {
@@ -18,7 +20,7 @@ export class FacebookService {
       // TODO: fix `Forbidden non-null assertion`
       appId: configService.get<string>('FACEBOOK_APP_ID')!,
       appSecret: configService.get<string>('FACEBOOK_APP_SECRET')!,
-      version: 'v9.0',
+      version: 'v8.0',
       Promise: global.Promise,
     });
   }
@@ -61,7 +63,7 @@ export class FacebookService {
     try {
       const fb = this.fb.withAccessToken(accessToken);
       const fbRes = await fb.api<FbPaginated<IFbPage>>(`/${facebookUserId}/accounts`, {
-        fields: 'id,name,access_token',
+        fields: 'id,name,access_token,instagram_business_account',
       });
 
       const pages = this.isLastPage(fbRes)
@@ -70,14 +72,14 @@ export class FacebookService {
 
       return pages;
     } catch (err) {
-      throw new Error("Couldn't fetch user's facebook pages" + err.message);
+      throw new Error("Couldn't fetch user's facebook pages: " + err.message);
     }
   }
 
   public async getPageInstagramAccounts(
     facebookPageId: string,
     accessToken: string,
-  ): Promise<IIgAccount[]> {
+  ): Promise<IFbIgAccount[]> {
     try {
       const fb = this.fb.withAccessToken(accessToken);
       const fbRes = await fb.api<FbPaginated<IFbIgAccount>>(
@@ -90,14 +92,9 @@ export class FacebookService {
         ? fbRes.data
         : await this.getRestPages(fbRes.paging.next!, fbRes.data);
 
-      return accounts.map((pageAccount) => ({
-        facebookId: pageAccount.id,
-        username: pageAccount.username,
-        profilePicture: pageAccount.profile_pic,
-        facebookAccessToken: accessToken,
-      }));
+      return accounts;
     } catch (err) {
-      throw new Error("Couldn't fetch page's instagram accounts" + err.message);
+      throw new Error("Couldn't fetch page's instagram accounts: " + err.message);
     }
   }
 
@@ -110,11 +107,72 @@ export class FacebookService {
       let accounts: IIgAccount[] = [];
       for (const page of pages) {
         const pageAccounts = await this.getPageInstagramAccounts(page.id, page.access_token);
-        accounts = accounts.concat(pageAccounts);
+
+        accounts = accounts.concat(
+          pageAccounts.map(
+            (pageAccount): IIgAccount => ({
+              fbIgAccountId: pageAccount.id,
+              fbIgBusinessAccountId: page.instagram_business_account.id,
+              username: pageAccount.username,
+              profilePicture: pageAccount.profile_pic,
+              fbAccessToken: page.access_token,
+            }),
+          ),
+        );
       }
       return accounts;
     } catch (err) {
-      throw new Error("Couldn't fetch all user's instagram accounts" + err.message);
+      throw new Error("Couldn't fetch all user's instagram accounts: " + err.message);
+    }
+  }
+
+  public async getIgAccountFollowersCount(
+    igBusinessAccountId: number,
+    accessToken: string,
+  ): Promise<number> {
+    try {
+      const fb = this.fb.withAccessToken(accessToken);
+      const fbRes = await fb.api<{ followed_by_count: number }>(`/${igBusinessAccountId}`, {
+        fields: 'followed_by_count',
+      });
+      return fbRes.followed_by_count;
+    } catch (err) {
+      throw new Error(
+        `Couldn't fetch ig account (${igBusinessAccountId}) followers count: ` + err.message,
+      );
+    }
+  }
+
+  public async getIgAccountNewDayFollowersCount(
+    igBusinessAccountId: number,
+    accessToken: string,
+  ): Promise<IIgAccountMetricValue> {
+    try {
+      const fb = this.fb.withAccessToken(accessToken);
+      const fbRes = await fb.api<FbPaginated<IIgAccountMetric>>(
+        `/${igBusinessAccountId}/insights`,
+        {
+          metric: 'follower_count',
+          period: 'day',
+        },
+      );
+      return fbRes.data[0].values[1];
+    } catch (err) {
+      throw new Error(
+        `Couldn't fetch ig account (${igBusinessAccountId}) followers count: ` + err.message,
+      );
+    }
+  }
+
+  sendBtach(body: {
+    batch: any[];
+    access_token: string;
+    include_headers?: boolean;
+  }): Promise<any[]> {
+    try {
+      return this.fb.api('', 'post', body);
+    } catch (err) {
+      throw new Error(`Couldn't send batch request to FB: ` + err.message);
     }
   }
 }

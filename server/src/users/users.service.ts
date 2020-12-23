@@ -25,6 +25,10 @@ export class UsersService {
     });
   }
 
+  getAll(): Promise<User[]> {
+    return this.userModel.findAll();
+  }
+
   async getDtoById(id: number): Promise<UserDto | null> {
     const user = await this.userModel.findOne({
       where: { id },
@@ -82,5 +86,9 @@ export class UsersService {
         through: { isDefault: true },
       });
     });
+  }
+
+  async isUserActive(userId: number): Promise<boolean> {
+    return Boolean(await this.userModel.findByPk(userId));
   }
 }

@@ -1,6 +1,7 @@
 import { AnyAction, combineReducers } from '@reduxjs/toolkit';
 import { initReducer } from '@data/init/reducer';
 import { instagramAccountsReducer } from '@data/instagramAccounts/reducer';
+import { igAccountStatsReducer } from '@data/igAccountStats/reducer';
 import { userReducer } from '@data/user/reducer';
 import { confirmLogout } from './init/actions';
 
@@ -8,6 +9,7 @@ const appReducer = combineReducers({
   [initReducer.name]: initReducer.reducer,
   [userReducer.name]: userReducer.reducer,
   [instagramAccountsReducer.name]: instagramAccountsReducer.reducer,
+  [igAccountStatsReducer.name]: igAccountStatsReducer.reducer,
 });
 
 export const reducer = (state: AppState | undefined, action: AnyAction) => {

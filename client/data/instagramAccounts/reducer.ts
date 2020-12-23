@@ -25,7 +25,7 @@ export const instagramAccountsReducer = createSlice({
   extraReducers: (builder) => {
     builder.addCase(loadIgAccounts, (state) => ({
       ...state,
-      status: LoadingStatus.Pending,
+      status: LoadingStatus.Loading,
     }));
     builder.addCase(loadIgAccountsSuccess, (state, { payload }) => ({
       status: LoadingStatus.Success,

@@ -54,9 +54,9 @@ export class AuthService {
           facebookId: profile.id,
           facebookAccessToken: longLivedAccessToken,
         });
-
-        await this.igAccountsService.syncWithFacebook(user.id);
       }
+
+      await this.igAccountsService.syncWithFacebook(user.id);
 
       const userToken = await this.authTokenModel.create({
         userId: user.id,
@@ -82,7 +82,7 @@ export class AuthService {
   async isDeviceIdCorrect(tokenId: number, deviceId?: string): Promise<boolean> {
     try {
       const tokenInfo = await this.authTokenModel.findOne({ where: { id: tokenId } });
-      return tokenInfo?.deviceId === deviceId;
+      return tokenInfo ? tokenInfo.deviceId === deviceId : false;
     } catch (err) {
       console.error('Device ID does not match the token' + err.message);
       return false;

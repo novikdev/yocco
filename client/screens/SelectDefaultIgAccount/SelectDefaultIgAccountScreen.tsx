@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { ScreenContainer } from '@components/ScreenContainer';
 import { SelectDefaultIgAccount } from './components/SelectDefaultIgAccount';
 import { theme } from '@services/theme';
