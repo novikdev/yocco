@@ -1,7 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { sign } from 'jsonwebtoken';
 import { Profile } from 'passport-facebook';
-import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 
 import { UsersService } from '../users/users.service';
@@ -9,6 +8,7 @@ import { FacebookService } from '../facebook/facebook.service';
 import { InstagramAccountsService } from '../instagram-accounts/instagram-accounts.service';
 import { AuthToken } from './auth-token.model';
 import { InjectModel } from '@nestjs/sequelize';
+import { AppConfigService } from '@common/modules/config';
 
 @Injectable()
 export class AuthService {
@@ -20,9 +20,9 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly fbService: FacebookService,
     private readonly igAccountsService: InstagramAccountsService,
-    private readonly configService: ConfigService,
+    private readonly configService: AppConfigService,
   ) {
-    this.JWT_SECRET_KEY = configService.get<string>('JWT_SECRET_KEY') ?? '';
+    this.JWT_SECRET_KEY = configService.jwtSecretKey;
   }
 
   getDeviceIdFromRequest(req: Request): string | undefined {
