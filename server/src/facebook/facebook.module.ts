@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { AppConfigModule } from '@common/modules/config';
 import { FacebookService } from './facebook.service';
 import { UsersModule } from '../users/users.module';
 
 @Module({
-  imports: [ConfigModule, UsersModule],
+  imports: [AppConfigModule, UsersModule],
   exports: [FacebookService],
   providers: [FacebookService],
 })

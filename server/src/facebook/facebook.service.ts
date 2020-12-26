@@ -1,5 +1,5 @@
+import { AppConfigService } from '@common/modules/config';
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { Facebook } from 'fb';
 import {
   IFbPage,
@@ -15,11 +15,10 @@ import {
 export class FacebookService {
   private fb: Facebook;
 
-  constructor(private configService: ConfigService) {
+  constructor(private configService: AppConfigService) {
     this.fb = new Facebook({
-      // TODO: fix `Forbidden non-null assertion`
-      appId: configService.get<string>('FACEBOOK_APP_ID')!,
-      appSecret: configService.get<string>('FACEBOOK_APP_SECRET')!,
+      appId: configService.fbAppId,
+      appSecret: configService.fbAppSecret,
       version: 'v8.0',
       Promise: global.Promise,
     });
@@ -48,8 +47,8 @@ export class FacebookService {
   public async getLongLivedAccessToken(accessToken: string) {
     try {
       const res = await this.fb.api<IFbUserAccessTokenResponse>('oauth/access_token', {
-        client_id: this.configService.get<string>('FACEBOOK_APP_ID'),
-        client_secret: this.configService.get<string>('FACEBOOK_APP_SECRET'),
+        client_id: this.configService.fbAppId,
+        client_secret: this.configService.fbAppSecret,
         grant_type: 'fb_exchange_token',
         fb_exchange_token: accessToken,
       });

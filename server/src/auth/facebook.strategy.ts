@@ -2,9 +2,9 @@ import { Request } from 'express';
 import { Strategy, Profile } from 'passport-facebook';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { Done } from './auth.types';
+import { AppConfigService } from '@common/modules/config';
 
 const scopes = [
   'email',
@@ -19,12 +19,12 @@ const scopes = [
 export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
   constructor(
     private readonly authService: AuthService,
-    private readonly configService: ConfigService,
+    private readonly configService: AppConfigService,
   ) {
     super({
-      clientID: configService.get<string>('FACEBOOK_APP_ID'),
-      clientSecret: configService.get<string>('FACEBOOK_APP_SECRET'),
-      callbackURL: 'http://localhost:3000/auth/facebook/callback',
+      clientID: configService.fbAppId,
+      clientSecret: configService.fbAppSecret,
+      callbackURL: `${configService.publicHostname}/auth/facebook/callback`,
       scope: scopes.join(','),
       profileFields: ['emails', 'name'],
       passReqToCallback: true,

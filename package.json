@@ -1,8 +1,8 @@
 {
-  "name": "instaspace",
+  "name": "yocco",
   "version": "0.1.0",
   "main": "index.js",
-  "repository": "git@github.com:novikdev/instaspace.git",
+  "repository": "git@github.com:novikdev/yocco.git",
   "author": "Anton Novik <tehbi4.dev@gmail.com>",
   "license": "MIT",
   "private": true,
@@ -10,7 +10,8 @@
     "start": "concurrently \"yarn start:server\" \"yarn start:client\"",
     "start:server": "yarn --cwd server start:dev",
     "start:client": "yarn --cwd client start",
-    "postinstall": "cd server && yarn && cd ../client && yarn"
+    "postinstall": "cd server && yarn && cd ../client && yarn",
+    "deploy:server:prod": "pm2 deploy ./deploy/pm2/ecosystem.config.js production"
   },
   "devDependencies": {
     "concurrently": "^5.3.0"
