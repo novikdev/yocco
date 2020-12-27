@@ -29,7 +29,7 @@ export function Profile() {
             <Text size="h4">{user.email}</Text>
           </View>
         </ProfileHeader>
-        <MenuItem onPress={() => navigation.navigate('SelectDefaultIgAccount', { mode: 'edit' })}>
+        <MenuItem onPress={() => navigation.navigate('SelectDefaultIgAccount')}>
           <Text size="h4">Аккаунт по умолчанию</Text>
         </MenuItem>
         <MenuItem onPress={() => dispatch(logout())}>

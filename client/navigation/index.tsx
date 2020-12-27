@@ -33,13 +33,26 @@ function RootNavigator() {
   const user = useSelector(selectUser);
 
   return (
-    <Stack.Navigator headerMode="none" mode="modal" screenOptions={{ animationEnabled: false }}>
+    <Stack.Navigator headerMode="screen" screenOptions={{ headerShown: false }}>
       {user ? (
         <>
-          <Stack.Screen name="Root" component={BottomTabNavigator} />
+          <Stack.Screen
+            name="Root"
+            component={BottomTabNavigator}
+            options={{ headerShown: false }}
+          />
           <Stack.Screen
             name="SelectDefaultIgAccountModal"
             component={SelectDefaultIgAccount.Modal}
+          />
+          <Stack.Screen
+            options={{
+              headerShown: true,
+              headerTitle: '',
+              headerBackTitle: 'Профиль',
+            }}
+            name="SelectDefaultIgAccount"
+            component={SelectDefaultIgAccount.Screen}
           />
           <Stack.Screen name="NotFound" component={NotFound} options={{ title: 'Oops!' }} />
         </>
