@@ -61,6 +61,7 @@ export function IgAccountStats() {
         )}
         renderItem={({ item }) => <SectionItem stats={item} />}
         ItemSeparatorComponent={ListItemSeparator}
+        stickySectionHeadersEnabled
       />
     </ScreenContainer>
   );
