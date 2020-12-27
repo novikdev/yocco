@@ -5,7 +5,6 @@ import { SelectDefaultIgAccount } from '../SelectDefaultIgAccount';
 
 export type ProfileParamList = {
   Profile: undefined;
-  SelectDefaultIgAccount: undefined;
 };
 
 const ProfileStack = createStackNavigator<ProfileParamList>();
@@ -17,13 +16,6 @@ export function Profile() {
         name="Profile"
         component={ProfileScreen}
         options={{ headerShown: false, headerTitle: 'Профиль' }}
-      />
-      <ProfileStack.Screen
-        name="SelectDefaultIgAccount"
-        component={SelectDefaultIgAccount.Screen}
-        options={{
-          headerTitle: '',
-        }}
       />
     </ProfileStack.Navigator>
   );
