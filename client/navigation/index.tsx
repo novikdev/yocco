@@ -11,6 +11,7 @@ import BottomTabNavigator from './BottomTabNavigator';
 import LinkingConfiguration from './LinkingConfiguration';
 import { selectUser } from '@data/user/selectors';
 import { SelectDefaultIgAccount } from '../screens/SelectDefaultIgAccount';
+import { theme } from '@services/theme';
 
 // If you are not familiar with React Navigation, we recommend going through the
 // "Fundamentals" guide: https://reactnavigation.org/docs/getting-started
@@ -50,6 +51,7 @@ function RootNavigator() {
               headerShown: true,
               headerTitle: '',
               headerBackTitle: 'Профиль',
+              headerTintColor: theme.colors.darkPurple,
             }}
             name="SelectDefaultIgAccount"
             component={SelectDefaultIgAccount.Screen}
