@@ -25,7 +25,7 @@ export default {
     versionCode: 1,
     adaptiveIcon: {
       foregroundImage: './assets/images/adaptive-icon.png',
-      backgroundColor: '#FFFFFF',
+      backgroundColor: '#6A37C7',
     },
   },
   web: {
