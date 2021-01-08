@@ -11,7 +11,10 @@
     "start:server": "yarn --cwd server start:dev",
     "start:client": "yarn --cwd client start",
     "postinstall": "cd server && yarn && cd ../client && yarn",
-    "deploy:server:prod": "pm2 deploy ./deploy/pm2/ecosystem.config.js production"
+    "build:android:staging": "cd client && expo build:android --release-channel=staging",
+    "build:ios:staging": "cd client && expo build:ios --release-channel=staging",
+    "deploy:server:prod": "pm2 deploy ./deploy/pm2/ecosystem.config.js production",
+    "adb:reverse": "adb reverse tcp:3000 tcp:3000"
   },
   "devDependencies": {
     "concurrently": "^5.3.0"
