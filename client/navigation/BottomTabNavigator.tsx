@@ -13,7 +13,7 @@ export default function BottomTabNavigator() {
   return (
     <BottomTab.Navigator
       initialRouteName="IgAccountStats"
-      tabBarOptions={{ activeTintColor: theme.colors.darkPurple }}
+      tabBarOptions={{ activeTintColor: theme.colors.darkPurple, labelStyle: { marginBottom: 4 } }}
     >
       <BottomTab.Screen
         name="IgAccountStats"
