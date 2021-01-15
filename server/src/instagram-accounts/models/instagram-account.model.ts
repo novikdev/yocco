@@ -56,7 +56,7 @@ export class InstagramAccount extends Model<InstagramAccount> {
   })
   fbAccessToken: string;
 
-  @BelongsToMany(() => User, () => UserInstagramAccount)
+  @BelongsToMany(() => User, () => UserInstagramAccount, 'ig_account_id', 'user_id')
   user: User[];
 
   @HasMany(() => IgAccountHourStats)
