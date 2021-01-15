@@ -22,7 +22,7 @@ module.exports = {
       // Multi host is possible, just by passing IPs/hostname as an array
       host: ["206.54.191.61"],
       // Branch
-      ref: "origin/feat/deploy",
+      ref: "origin/develop",
       // Git repository to clone
       repo: "git@github.com:novikdev/yocco.git",
       // Path of the application on target servers
