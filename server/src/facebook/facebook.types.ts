@@ -33,7 +33,7 @@ export interface IFbPage {
   id: string;
   name: string;
   access_token: string;
-  instagram_business_account: {
+  instagram_business_account?: {
     id: string;
   };
 }
