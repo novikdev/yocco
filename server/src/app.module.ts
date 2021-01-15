@@ -23,7 +23,7 @@ import { AppConfigModule, AppConfigService } from '@common/modules/config';
         define: {
           underscored: true,
         },
-        synchronize: true,
+        synchronize: process.env.NODE_ENV !== 'production',
         logging: configService.isDbLoggingEnabled && console.log,
         logQueryParameters: configService.isDbLoggingEnabled,
       }),
