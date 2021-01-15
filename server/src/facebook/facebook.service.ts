@@ -105,13 +105,18 @@ export class FacebookService {
       const pages = await this.getUserPages(facebookUserId, accessToken);
       let accounts: IIgAccount[] = [];
       for (const page of pages) {
+        if (!page.instagram_business_account) {
+          continue;
+        }
+
         const pageAccounts = await this.getPageInstagramAccounts(page.id, page.access_token);
 
         accounts = accounts.concat(
           pageAccounts.map(
             (pageAccount): IIgAccount => ({
               fbIgAccountId: pageAccount.id,
-              fbIgBusinessAccountId: page.instagram_business_account.id,
+              // TODO: why do we need use ! here?
+              fbIgBusinessAccountId: page.instagram_business_account!.id,
               username: pageAccount.username,
               profilePicture: pageAccount.profile_pic,
               fbAccessToken: page.access_token,
