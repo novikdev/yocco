@@ -6,10 +6,12 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { InstagramAccountsModule } from './instagram-accounts/instagram-accounts.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AppConfigModule, AppConfigService } from '@common/modules/config';
+import { LoggerModule } from '@common/modules/logger';
 
 @Module({
   imports: [
     AppConfigModule,
+    LoggerModule,
     ScheduleModule.forRoot(),
     SequelizeModule.forRootAsync({
       imports: [AppConfigModule],
