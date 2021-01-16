@@ -9,10 +9,13 @@ import { InstagramAccountsService } from '../instagram-accounts/instagram-accoun
 import { AuthToken } from './auth-token.model';
 import { InjectModel } from '@nestjs/sequelize';
 import { AppConfigService } from '@common/modules/config';
+import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class AuthService {
   private JWT_SECRET_KEY: string;
+
+  private readonly logger = new Logger(AuthService.name);
 
   constructor(
     @InjectModel(AuthToken)
@@ -29,12 +32,28 @@ export class AuthService {
     return req.header('Device-ID');
   }
 
-  async validateFacebookLogin(
-    profile: Profile,
-    accessToken: string,
-    deviceId?: string,
-  ): Promise<string> {
+  async getNotGrantedPermissions(fbUserId: string, accessToken: string): Promise<string[]> {
+    this.logger.debug(`
+      ====> getNotGrantedPermissions
+        fbUserId: ${fbUserId}
+    `);
+    const permissions = await this.fbService.getPermissions(fbUserId, accessToken);
+    const notGrantedPermissions = permissions
+      .filter(({ status }) => status !== 'granted')
+      .map(({ permission }) => permission);
+    this.logger.debug(`
+        notGrantedPermissions: ${notGrantedPermissions}
+    `);
+    return notGrantedPermissions;
+  }
+
+  async finishUserAuth(profile: Profile, accessToken: string, deviceId?: string): Promise<string> {
     try {
+      this.logger.debug(`
+        ====> finishUserAuth
+          profile: ${profile}
+          deviceId: ${deviceId}
+      `);
       const longLivedAccessToken = await this.fbService.getLongLivedAccessToken(accessToken);
 
       let user = await this.usersService.getByFacebookId(profile.id);

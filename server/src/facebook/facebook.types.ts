@@ -51,3 +51,8 @@ export interface IIgAccount {
   profilePicture: string;
   fbAccessToken: string;
 }
+
+export interface IFbPermission {
+  permission: string;
+  status: 'granted' | 'declined' | 'expired';
+}

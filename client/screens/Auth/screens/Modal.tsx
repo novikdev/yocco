@@ -11,6 +11,8 @@ import { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes';
 import { ActivityIndicator } from '@components/ActivityIndicator';
 import { ScreenContainer } from '@components/ScreenContainer';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import URL from 'url-parse';
+import { YoccoError } from '@services/error';
 
 type Props = StackScreenProps<AuthParamList, 'Modal'>;
 
@@ -21,10 +23,10 @@ export function Modal({ navigation }: Props) {
   const dispatch = useDispatch();
   const uri = Auth.getFacebookAuthPageUrl();
 
-  const finish = async (url?: string) => {
+  const finish = async (error: string | boolean, url?: string) => {
     showWebView(false);
     try {
-      if (!url) {
+      if (!url || error) {
         throw new Error();
       }
       const { jwt } = await Auth.finishFacebookAuth(url);
@@ -33,7 +35,13 @@ export function Modal({ navigation }: Props) {
         dispatch(loadUser());
       }
     } catch (err) {
-      Alert.alert('Sorry, something went wrong', 'Please try again', [
+      let errorMsg = 'Что-то пошло не так';
+      if (err instanceof YoccoError) {
+        errorMsg = err.message;
+      } else if (typeof error === 'string') {
+        errorMsg = error;
+      }
+      Alert.alert(errorMsg, 'Попробуйте ещё раз', [
         {
           text: 'Ok',
           onPress: () => {
@@ -57,7 +65,7 @@ export function Modal({ navigation }: Props) {
   // stop redirects chain to get jwt in the response body using axios
   const onShouldStartLoadWithRequest = (request: ShouldStartLoadRequest): boolean => {
     if (request.url.includes('/auth/facebook/callback?code=')) {
-      finish(request.url);
+      finish(false, request.url);
       return false;
     }
     return true;
@@ -70,7 +78,17 @@ export function Modal({ navigation }: Props) {
           source={{ uri }}
           style={{ flex: 1 }}
           onNavigationStateChange={handleNavigationStateChange}
-          onHttpError={() => finish()}
+          onHttpError={(syntheticEvent) => {
+            const { nativeEvent } = syntheticEvent;
+            let error: boolean | string = true;
+            if (nativeEvent.statusCode === 401) {
+              const { query } = new URL(nativeEvent.url, true);
+              if (query?.error_reason === 'user_denied') {
+                error = 'Для работы приложения необходимо войти через Facebook';
+              }
+            }
+            finish(error);
+          }}
           onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
         />
       )}

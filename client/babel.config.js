@@ -23,10 +23,17 @@ const moduleResolverPlugin = [
   },
 ];
 
+const transformBuiltinExtendPlugin = [
+  'babel-plugin-transform-builtin-extend',
+  {
+    globals: ['Error'],
+  },
+];
+
 module.exports = function (api) {
   api.cache(true);
   return {
     presets: ['babel-preset-expo'],
-    plugins: [moduleResolverPlugin],
+    plugins: [moduleResolverPlugin, transformBuiltinExtendPlugin],
   };
 };

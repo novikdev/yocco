@@ -7,6 +7,7 @@ import {
   UseGuards,
   Body,
   UnprocessableEntityException,
+  Logger,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard, RequestWithUserId } from '../auth/jwt-auth.guard';
@@ -19,6 +20,8 @@ import { UsersService } from './users.service';
 @ApiTags('users')
 @ApiBearerAuth()
 export class UsersController {
+  private readonly logger = new Logger(UsersController.name);
+
   constructor(private readonly usersService: UsersService) {}
 
   @Get('me')
@@ -28,6 +31,10 @@ export class UsersController {
   })
   async getCurrentUser(@Request() req: RequestWithUserId): Promise<UserDto> {
     try {
+      this.logger.debug(`
+        ===> getCurrentUser
+          userId: ${req.user.id}
+      `);
       const user = await this.usersService.getDtoById(req.user.id);
       if (!user) {
         throw new NotFoundException();

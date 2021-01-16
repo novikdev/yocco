@@ -15,11 +15,14 @@ import { Op } from 'sequelize';
 import { IgAccountHourStatsDto } from './dtos/instagram-account-stats.dto';
 import { format } from 'date-fns';
 import { DATE_ISO_FORMAT } from '@common/services/dates.service';
+import { Logger } from '@nestjs/common';
 
 const FB_BATCH_LIMIT = 50;
 
 @Injectable()
 export class InstagramAccountsService {
+  private readonly logger = new Logger(InstagramAccountsService.name);
+
   constructor(
     @InjectModel(InstagramAccount)
     private igAccauntModel: typeof InstagramAccount,
@@ -126,7 +129,7 @@ export class InstagramAccountsService {
     });
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron(CronExpression.EVERY_MINUTE)
   private async updateIgAccountsStats() {
     try {
       const igAccounts = await this.getAllIgAccountsWithStats();
@@ -165,6 +168,13 @@ export class InstagramAccountsService {
           .map((igAccount, i) => {
             const followersCountResIndex = i * 2;
             const insightsResIndex = followersCountResIndex + 1;
+
+            this.logger.debug(`
+              ===> updateIgAccountsStats
+                igAccount: ${igAccount.id}
+                followersCountResponse: ${JSON.stringify(responses[followersCountResIndex])}
+                insightsResponse: ${JSON.stringify(responses[insightsResIndex])}
+            `);
             // TODO: handle `code !== 200`
             if (
               responses[followersCountResIndex]?.code !== 200 ||
