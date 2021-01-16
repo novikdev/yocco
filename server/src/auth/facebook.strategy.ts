@@ -23,6 +23,7 @@ export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
     private readonly configService: AppConfigService,
   ) {
     super({
+      graphAPIVersion: 'v8.0',
       clientID: configService.fbAppId,
       clientSecret: configService.fbAppSecret,
       callbackURL: `${configService.publicHostname}/auth/facebook/callback`,
@@ -64,5 +65,12 @@ export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
     } catch (error) {
       done(error);
     }
+  }
+
+  // WORKAROUND: pass options to superclass auth call by overriding superclass method (see https://github.com/nestjs/passport/issues/57)
+  authorizationParams(options: any): any {
+    return Object.assign(options, {
+      auth_type: 'rerequest',
+    });
   }
 }
