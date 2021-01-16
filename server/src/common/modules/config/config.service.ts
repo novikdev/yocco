@@ -1,6 +1,7 @@
 // TODO: add validation, fix types and remove `@typescript-eslint/no-non-null-assertion` disabling
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
+import { LogLevel } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
@@ -15,6 +16,17 @@ type DbConfig = {
 @Injectable()
 export class AppConfigService {
   constructor(private configService: ConfigService) {}
+
+  get logLevels(): LogLevel[] {
+    const allLevels: LogLevel[] = ['log', 'error', 'warn', 'debug', 'verbose'];
+    const levelsFromConfig: LogLevel[] = (this.configService.get<string>('LOG_LEVELS') || '')
+      .split(',')
+      .filter((level: string): level is LogLevel => (allLevels as string[]).includes(level));
+    if (levelsFromConfig.length > 0) {
+      return levelsFromConfig;
+    }
+    return process.env.NODE_ENV === 'production' ? ['error', 'warn'] : allLevels;
+  }
 
   get port(): number {
     const defaultPort = 3000;
