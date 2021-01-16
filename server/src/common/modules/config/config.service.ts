@@ -16,6 +16,15 @@ type DbConfig = {
 export class AppConfigService {
   constructor(private configService: ConfigService) {}
 
+  get port(): number {
+    const defaultPort = 3000;
+    try {
+      return parseInt(this.configService.get<string>('PORT') || '', 10) || defaultPort;
+    } catch {
+      return defaultPort;
+    }
+  }
+
   get publicHostname(): string {
     const protocol = this.configService.get<string>('PROTOCOL');
     const host = this.configService.get<string>('HOST');
@@ -23,7 +32,7 @@ export class AppConfigService {
 
     let port = '';
     if (process.env.NODE_ENV !== 'production') {
-      port = ':' + this.configService.get<string>('PORT');
+      port = ':' + this.port;
     }
     return `${protocol}://${host}${port}${basePath}`;
   }
