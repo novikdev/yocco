@@ -1,4 +1,5 @@
 import { AppConfigService } from '@common/modules/config';
+import { Logger } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { Facebook } from 'fb';
 import {
@@ -9,11 +10,14 @@ import {
   IIgAccount,
   IIgAccountMetric,
   IIgAccountMetricValue,
+  IFbPermission,
 } from './facebook.types';
 
 @Injectable()
 export class FacebookService {
   private fb: Facebook;
+
+  private readonly logger = new Logger(FacebookService.name);
 
   constructor(private configService: AppConfigService) {
     this.fb = new Facebook({
@@ -177,6 +181,26 @@ export class FacebookService {
       return this.fb.api('', 'post', body);
     } catch (err) {
       throw new Error(`Couldn't send batch request to FB: ` + err.message);
+    }
+  }
+
+  public async getPermissions(fbUserId: string, accessToken: string): Promise<IFbPermission[]> {
+    try {
+      this.logger.debug(`
+        ===> getPermissions
+          fbUserId: ${fbUserId}
+      `);
+      const fb = this.fb.withAccessToken(accessToken);
+      const fbRes = await fb.api<FbPaginated<IFbPermission>>(`${fbUserId}/permissions`);
+      const permissions = this.isLastPage(fbRes)
+        ? fbRes.data
+        : await this.getRestPages(fbRes.paging.next!, fbRes.data);
+      this.logger.debug(`
+          permissions: ${JSON.stringify(permissions)}
+      `);
+      return permissions;
+    } catch (err) {
+      throw new Error(`Couldn't get fb user (${fbUserId}) permissions: ` + err.message);
     }
   }
 }
