@@ -129,7 +129,7 @@ export class InstagramAccountsService {
     });
   }
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  @Cron(CronExpression.EVERY_HOUR)
   private async updateIgAccountsStats() {
     try {
       const igAccounts = await this.getAllIgAccountsWithStats();
