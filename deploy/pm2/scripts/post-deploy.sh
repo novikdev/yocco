@@ -11,5 +11,8 @@ yarn --cwd server install --frozen-lockfile --production=false
 # build app
 yarn --cwd server build
 
+# run migrations
+yarn --cwd server sequelize db:migrate
+
 # restart app
 pm2 startOrRestart ./deploy/pm2/ecosystem.config.js --env production
