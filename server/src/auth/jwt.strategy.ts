@@ -31,7 +31,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 
       const deviceId = this.authService.getDeviceIdFromRequest(req);
 
-      const isDeviceIdCorrect = this.authService.isDeviceIdCorrect(jwtPayload.jti, deviceId);
+      const isDeviceIdCorrect: boolean = await this.authService.isDeviceIdCorrect(jwtPayload.jti, deviceId);
       if (!isDeviceIdCorrect) {
         throw new Error('device id and jwt are not matched');
       }

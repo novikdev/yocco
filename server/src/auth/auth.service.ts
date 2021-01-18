@@ -100,8 +100,18 @@ export class AuthService {
 
   async isDeviceIdCorrect(tokenId: number, deviceId?: string): Promise<boolean> {
     try {
+      this.logger.debug(`
+        ===> isDeviceIdCorrect
+          tokenId: ${tokenId}
+          deviceId: ${deviceId}
+      `);
       const tokenInfo = await this.authTokenModel.findOne({ where: { id: tokenId } });
-      return tokenInfo ? tokenInfo.deviceId === deviceId : false;
+      const result = tokenInfo ? tokenInfo.deviceId === deviceId : false;
+      this.logger.debug(`
+          found token: ${JSON.stringify(tokenInfo)}
+          method result: ${result}
+      `);
+      return result;
     } catch (err) {
       console.error('Device ID does not match the token' + err.message);
       return false;
