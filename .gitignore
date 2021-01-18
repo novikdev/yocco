@@ -5,4 +5,5 @@
 yarn-error.log
 node_modules
 deploy/.env.api
+deploy/.env.db
 .DS_Store

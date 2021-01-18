@@ -8,6 +8,7 @@ module.exports = {
       // Environment variables injected when starting with --env production
       // http://pm2.keymetrics.io/docs/usage/application-declaration/#switching-to-different-environments
       env_production: {
+        APP_DIR: "/data/yocco",
         NODE_ENV: "production",
       },
     },
