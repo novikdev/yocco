@@ -56,3 +56,12 @@ export interface IFbPermission {
   permission: string;
   status: 'granted' | 'declined' | 'expired';
 }
+
+export interface IBatchRequest {
+  method: 'get' | 'post';
+  relative_url: string;
+  access_token?: string;
+  search?: {
+    [key: string]: string;
+  };
+}
