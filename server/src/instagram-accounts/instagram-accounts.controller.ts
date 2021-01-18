@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Logger, Param, Query, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard, RequestWithUserId } from '../auth/jwt-auth.guard';
 import { InstagramAccountDto } from './dtos/instagram-account.dto';
 import { InstagramAccountsService } from './instagram-accounts.service';
@@ -12,6 +12,8 @@ import { IgAccountHourStatsDto } from './dtos/instagram-account-stats.dto';
 @ApiTags('instagram-accounts')
 @ApiBearerAuth()
 export class InstagramAccountsController {
+  private readonly logger = new Logger(InstagramAccountsController.name);
+
   constructor(private readonly igAccountsService: InstagramAccountsService) {}
   @Get()
   @ApiOkResponse({
@@ -33,6 +35,12 @@ export class InstagramAccountsController {
     @Query(new ValidationPipe()) query: IgAccountStatsQueryDto,
     @Req() req: RequestWithUserId,
   ): Promise<IgAccountHourStatsDto[]> {
+    this.logger.debug(`
+      ===> getAccountStats
+        igAccountId: ${igAccountId}
+        query: ${JSON.stringify(query)}
+        userId: ${req.user.id}
+    `);
     const from = new Date(query.from);
     const to = new Date(query.to);
     return this.igAccountsService.getStats(req.user.id, igAccountId, from, to);
