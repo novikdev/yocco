@@ -2,7 +2,7 @@ import { arrayToMap, isFilled } from '@common/functions';
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize-typescript';
-import { IIgAccount } from '../facebook/facebook.types';
+import { IBatchRequest, IIgAccount } from '../facebook/facebook.types';
 import { FacebookService } from '../facebook/facebook.service';
 import { UsersService } from '../users/users.service';
 import { InstagramAccountDto } from './dtos/instagram-account.dto';
@@ -136,26 +136,25 @@ export class InstagramAccountsService {
       const igAccountsChunks = chunk(igAccounts, FB_BATCH_LIMIT / 2);
       for (const igAccountsChunk of igAccountsChunks) {
         const requests = igAccountsChunk
-          .map((igAccount) => {
-            const insightsSearchParams = new URLSearchParams();
-            insightsSearchParams.set('metric', 'follower_count');
-            insightsSearchParams.set('period', 'day');
-
-            return [
-              {
-                method: 'get',
-                relative_url: `${igAccount.fbIgBusinessAccountId}?fields=followers_count`,
-                access_token: igAccount.fbAccessToken,
+          .map((igAccount): IBatchRequest[] => [
+            {
+              method: 'get',
+              relative_url: `${igAccount.fbIgBusinessAccountId}`,
+              search: {
+                fields: 'followers_count',
               },
-              {
-                method: 'get',
-                relative_url: `${
-                  igAccount.fbIgBusinessAccountId
-                }/insights?${insightsSearchParams.toString()}`,
-                access_token: igAccount.fbAccessToken,
+              access_token: igAccount.fbAccessToken,
+            },
+            {
+              method: 'get',
+              relative_url: `${igAccount.fbIgBusinessAccountId}/insights`,
+              search: {
+                metric: 'follower_count',
+                period: 'day',
               },
-            ];
-          })
+              access_token: igAccount.fbAccessToken,
+            },
+          ])
           .flat();
 
         const responses = await this.fbService.sendBtach({

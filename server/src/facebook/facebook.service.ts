@@ -11,7 +11,9 @@ import {
   IIgAccountMetric,
   IIgAccountMetricValue,
   IFbPermission,
+  IBatchRequest,
 } from './facebook.types';
+import crypto from 'crypto';
 
 @Injectable()
 export class FacebookService {
@@ -173,12 +175,31 @@ export class FacebookService {
   }
 
   sendBtach(body: {
-    batch: any[];
+    batch: IBatchRequest[];
     access_token: string;
     include_headers?: boolean;
   }): Promise<any[]> {
     try {
-      return this.fb.api('', 'post', body);
+      const batch = body.batch.map((req) => {
+        const searchParams = new URLSearchParams(req.search);
+        if (req.access_token) {
+          const appsecretProof = crypto
+            .createHmac('sha256', this.configService.fbAppSecret)
+            .update(req.access_token)
+            .digest('hex');
+
+          searchParams.append('access_token', req.access_token);
+          searchParams.append('appsecret_proof', appsecretProof);
+        }
+
+        const searchStr = searchParams.toString();
+
+        return {
+          method: req.method,
+          relative_url: req.relative_url + (searchStr ? '?' + searchStr : ''),
+        };
+      });
+      return this.fb.api('', 'post', { ...body, batch });
     } catch (err) {
       throw new Error(`Couldn't send batch request to FB: ` + err.message);
     }
