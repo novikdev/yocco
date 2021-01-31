@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { FacebookModule } from '../facebook/facebook.module';
 import { UsersModule } from '../users/users.module';
@@ -11,10 +11,10 @@ import { IgAccountHourStats } from './models/ig-account-hour-stats.model';
 @Module({
   imports: [
     SequelizeModule.forFeature([InstagramAccount, UserInstagramAccount, IgAccountHourStats]),
+    forwardRef(() => FacebookModule),
     UsersModule,
-    FacebookModule,
   ],
-  exports: [SequelizeModule, InstagramAccountsService],
+  exports: [InstagramAccountsService],
   controllers: [InstagramAccountsController],
   providers: [InstagramAccountsService],
 })

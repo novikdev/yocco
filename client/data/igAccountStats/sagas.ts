@@ -2,7 +2,7 @@ import { IHourIgAccountStats, InstagramAccounts } from '@services/api/instagram-
 import { call, put, select, takeLatest } from 'redux-saga/effects';
 import * as actions from './actions';
 import { selectLoadedStatsRange, Range, selectLoadedStatsIgAccountId } from './selectors';
-import { differenceInHours, endOfDay, formatISO, startOfDay, sub, subDays } from 'date-fns';
+import { differenceInHours, endOfDay, startOfDay, subDays } from 'date-fns';
 import { LoadingStatus } from '@data/types';
 import { Alert } from 'react-native';
 
@@ -11,7 +11,7 @@ const RESET_AFTER_DAYS = 2;
 function* loadIgAccountStats({
   payload: igAccountId,
 }: ReturnType<typeof actions.loadIgAccountStats>) {
-  const currentIgAccountId: number | null = yield select(selectLoadedStatsIgAccountId);
+  const currentIgAccountId: string | null = yield select(selectLoadedStatsIgAccountId);
   const loadedRange: Range = yield select(selectLoadedStatsRange);
   let resetPreviousData = true;
 

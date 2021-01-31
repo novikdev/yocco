@@ -29,6 +29,6 @@ export class AuthController {
   @Get('logout')
   @UseGuards(JwtAuthGuard)
   async logout(@Request() req: RequestWithUserId) {
-    return this.authService.logout(req.user.tokenId);
+    return this.authService.logoutByTokenId(req.user.tokenId);
   }
 }

@@ -14,7 +14,7 @@ import { AppLoading } from 'expo';
 
 LogBox.ignoreLogs(['Remote debugger', 'Native splash screen is already hidden']);
 
-const store = createStore(reducer, saga);
+export const store = createStore(reducer, saga);
 
 export default function AppInitializer() {
   return (

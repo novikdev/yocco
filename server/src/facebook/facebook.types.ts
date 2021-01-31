@@ -45,18 +45,30 @@ export interface IFbIgAccount {
 }
 
 export interface IIgAccount {
-  fbIgAccountId: string;
+  id: string;
   fbIgBusinessAccountId: string;
   username: string;
   profilePicture: string;
   fbAccessToken: string;
 }
 
+export enum FbPermissionStatus {
+  Granted = 'granted',
+  Declined = 'declined',
+  Expired = 'expired',
+}
 export interface IFbPermission {
-  permission: string;
-  status: 'granted' | 'declined' | 'expired';
+  permission: FbPermission;
+  status: FbPermissionStatus;
 }
 
+export interface IFbPermissionChange {
+  field: FbPermission;
+  value: {
+    verb: FbPermissionStatus;
+    target_ids: string[];
+  };
+}
 export interface IBatchRequest {
   method: 'get' | 'post';
   relative_url: string;
@@ -64,4 +76,24 @@ export interface IBatchRequest {
   search?: {
     [key: string]: string;
   };
+}
+
+export enum FbPermission {
+  Email = 'email',
+  PagesShowList = 'pages_show_list',
+  PagesReadEngagement = 'pages_read_engagement',
+  InstagramBasic = 'instagram_basic',
+  InstagramManageInsights = 'instagram_manage_insights',
+  AdsManagement = 'ads_management',
+  BusinessManagement = 'business_management',
+}
+export interface IFbWebhook<T> {
+  object: 'permissions';
+  entry: {
+    id: string;
+    /** User id */
+    uid?: string;
+    changes: T[];
+    time: number;
+  }[];
 }

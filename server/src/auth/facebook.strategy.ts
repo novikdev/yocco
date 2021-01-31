@@ -5,15 +5,16 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Done } from './auth.types';
 import { AppConfigService } from '@common/modules/config';
+import { FbPermission } from '../facebook/facebook.types';
 
-const scopes = [
-  'email',
-  'pages_show_list', // для получения спсика страниц доступных fb пользователю (GET /{fb-user-id}/pages)
-  'pages_read_engagement',
-  'instagram_basic', // для получения подписчиков (GET /{ig-account-id})
-  'instagram_manage_insights', // для получения количества новых подписчиков (GET /{ig-account-id}/insights)
-  'ads_management', // для получения количества новых подписчиков, если доступ к странице предоставлен через Бизнес-менеджер (GET /{ig-account-id}/insights)
-  'business_management', // для получения количества новых подписчиков, если доступ к странице предоставлен через Бизнес-менеджер (GET /{ig-account-id}/insights)
+export const requiredFbPermissions = [
+  FbPermission.Email,
+  FbPermission.PagesShowList, // для получения спсика страниц доступных fb пользователю (GET /{fb-user-id}/pages)
+  FbPermission.PagesReadEngagement, // нужен для instqgram_basic
+  FbPermission.InstagramBasic, // для получения подписчиков (GET /{ig-account-id})
+  FbPermission.InstagramManageInsights, // для получения количества новых подписчиков (GET /{ig-account-id}/insights)
+  FbPermission.AdsManagement, // для получения количества новых подписчиков, если доступ к странице предоставлен через Бизнес-менеджер (GET /{ig-account-id}/insights)
+  FbPermission.BusinessManagement, // для получения количества новых подписчиков, если доступ к странице предоставлен через Бизнес-менеджер (GET /{ig-account-id}/insights)
 ];
 
 @Injectable()
@@ -27,7 +28,7 @@ export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
       clientID: configService.fbAppId,
       clientSecret: configService.fbAppSecret,
       callbackURL: `${configService.publicHostname}/auth/facebook/callback`,
-      scope: scopes.join(','),
+      scope: requiredFbPermissions.join(','),
       profileFields: ['emails', 'name'],
       passReqToCallback: true,
     });

@@ -58,7 +58,7 @@ export class UsersController {
       // TODO: move this check into `UpdateUserDto` validation
       if (
         userDto.defaultInstagramAccountId &&
-        typeof userDto.defaultInstagramAccountId === 'number'
+        typeof userDto.defaultInstagramAccountId === 'string'
       ) {
         await this.usersService.setDefaultIgAccount(req.user.id, userDto.defaultInstagramAccountId);
         const user = await this.usersService.getDtoById(req.user.id);

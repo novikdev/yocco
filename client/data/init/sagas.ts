@@ -85,12 +85,16 @@ function confirmLagout() {
   });
 }
 
-function* logout() {
-  const confirmed: boolean = yield call(confirmLagout);
-  if (!confirmed) {
-    return;
+function* logout(action: ReturnType<typeof actions.logout>) {
+  const silent = action.payload.silent;
+
+  if (!silent) {
+    const confirmed: boolean = yield call(confirmLagout);
+    if (!confirmed) {
+      return;
+    }
+    yield call(Auth.logout);
   }
-  yield call(Auth.logout);
   yield call(AsyncStorage.removeItem, AUTH_DATA_KEY);
   yield put(actions.confirmLogout());
   yield call(initSaga);

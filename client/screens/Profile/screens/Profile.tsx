@@ -32,7 +32,7 @@ export function Profile() {
         <MenuItem onPress={() => navigation.navigate('SelectDefaultIgAccount')}>
           <Text size="h4">Аккаунт по умолчанию</Text>
         </MenuItem>
-        <MenuItem onPress={() => dispatch(logout())}>
+        <MenuItem onPress={() => dispatch(logout({ silent: false }))}>
           <Text size="h4">Выйти</Text>
         </MenuItem>
         <ProfileFooter>

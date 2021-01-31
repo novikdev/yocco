@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { sign } from 'jsonwebtoken';
 import { Profile } from 'passport-facebook';
 import { Request } from 'express';
@@ -10,6 +10,8 @@ import { AuthToken } from './auth-token.model';
 import { InjectModel } from '@nestjs/sequelize';
 import { AppConfigService } from '@common/modules/config';
 import { Logger } from '@nestjs/common';
+import { FbPermission, FbPermissionStatus } from '../facebook/facebook.types';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +23,7 @@ export class AuthService {
     @InjectModel(AuthToken)
     private readonly authTokenModel: typeof AuthToken,
     private readonly usersService: UsersService,
+    @Inject(forwardRef(() => FacebookService))
     private readonly fbService: FacebookService,
     private readonly igAccountsService: InstagramAccountsService,
     private readonly configService: AppConfigService,
@@ -32,14 +35,14 @@ export class AuthService {
     return req.header('Device-ID');
   }
 
-  async getNotGrantedPermissions(fbUserId: string, accessToken: string): Promise<string[]> {
+  async getNotGrantedPermissions(fbUserId: string, accessToken: string): Promise<FbPermission[]> {
     this.logger.debug(`
       ====> getNotGrantedPermissions
         fbUserId: ${fbUserId}
     `);
     const permissions = await this.fbService.getPermissions(fbUserId, accessToken);
     const notGrantedPermissions = permissions
-      .filter(({ status }) => status !== 'granted')
+      .filter(({ status }) => status !== FbPermissionStatus.Granted)
       .map(({ permission }) => permission);
     this.logger.debug(`
         notGrantedPermissions: ${notGrantedPermissions}
@@ -122,7 +125,17 @@ export class AuthService {
     return Date.now() >= exp * 1000;
   }
 
-  async logout(tokenId: number) {
+  public async logoutByTokenId(tokenId: number) {
     return this.authTokenModel.destroy({ where: { id: tokenId } });
+  }
+
+  public async logoutByUserIds(userIds: number[]) {
+    return this.authTokenModel.destroy({
+      where: {
+        userId: {
+          [Op.or]: userIds,
+        },
+      },
+    });
   }
 }

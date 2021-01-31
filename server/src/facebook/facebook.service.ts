@@ -1,5 +1,5 @@
 import { AppConfigService } from '@common/modules/config';
-import { Logger } from '@nestjs/common';
+import { forwardRef, Inject, Logger } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { Facebook } from 'fb';
 import {
@@ -12,8 +12,16 @@ import {
   IIgAccountMetricValue,
   IFbPermission,
   IBatchRequest,
+  IFbPermissionChange,
+  IFbWebhook,
+  FbPermissionStatus,
 } from './facebook.types';
 import crypto from 'crypto';
+import { requiredFbPermissions } from '../auth/facebook.strategy';
+import { isDefined } from '@common/functions';
+import { AuthService } from '../auth/auth.service';
+import { UsersService } from '../users/users.service';
+import { InstagramAccountsService } from '../instagram-accounts/instagram-accounts.service';
 
 @Injectable()
 export class FacebookService {
@@ -21,7 +29,13 @@ export class FacebookService {
 
   private readonly logger = new Logger(FacebookService.name);
 
-  constructor(private configService: AppConfigService) {
+  constructor(
+    private configService: AppConfigService,
+    @Inject(forwardRef(() => AuthService))
+    private readonly authService: AuthService,
+    private readonly igAccountsService: InstagramAccountsService,
+    private readonly usersService: UsersService,
+  ) {
     this.fb = new Facebook({
       appId: configService.fbAppId,
       appSecret: configService.fbAppSecret,
@@ -120,7 +134,7 @@ export class FacebookService {
         accounts = accounts.concat(
           pageAccounts.map(
             (pageAccount): IIgAccount => ({
-              fbIgAccountId: pageAccount.id,
+              id: pageAccount.id,
               // TODO: why do we need use ! here?
               fbIgBusinessAccountId: page.instagram_business_account!.id,
               username: pageAccount.username,
@@ -222,6 +236,57 @@ export class FacebookService {
       return permissions;
     } catch (err) {
       throw new Error(`Couldn't get fb user (${fbUserId}) permissions: ` + err.message);
+    }
+  }
+
+  public async handlePermissionsChange(webhookPayload: IFbWebhook<IFbPermissionChange>) {
+    try {
+      this.logger.debug(`
+        ===> handlePermissionsChange (1)
+          object: ${webhookPayload.object}
+      `);
+      if (webhookPayload.object !== 'permissions') {
+        return;
+      }
+      // TODO: may be we should handle granted permissions too?
+      const usersToLogOut = webhookPayload.entry
+        .map((user) => {
+          const toLogOut = user.changes.some((change) => {
+            const isRequiredPermission = requiredFbPermissions.includes(change.field);
+            const isNotGranted = change.value.verb !== FbPermissionStatus.Granted;
+            return isRequiredPermission && isNotGranted;
+          });
+          return toLogOut ? user.uid : undefined;
+        })
+        .filter(isDefined);
+      this.logger.debug(`
+        ===> handlePermissionsChange (2)
+          users to logout (fb ids): ${usersToLogOut}
+      `);
+      if (usersToLogOut.length === 0) {
+        return;
+      }
+      const userIds = (await this.usersService.getByFacebookIds(usersToLogOut, ['id'])).map(
+        ({ id }) => id,
+      );
+      this.logger.debug(`
+        ===> handlePermissionsChange (3)
+          users to logout (ids): ${userIds}
+      `);
+      await this.authService.logoutByUserIds(userIds);
+
+      this.logger.debug(`
+        ===> handlePermissionsChange (4)
+          set users instagram accounts has_permissions to 'false'
+      `);
+      await this.igAccountsService.destroyUsersAccounts(userIds);
+      return;
+    } catch (err) {
+      this.logger.error(`
+        ===> handlePermissionsChange
+          Couldn't handle fb permissions webhook
+          ${err.message}
+      `);
     }
   }
 }

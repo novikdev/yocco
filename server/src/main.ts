@@ -5,10 +5,7 @@ import { AppConfigService } from '@common/modules/config';
 import { LoggerService } from '@common/modules/logger/logger.service';
 
 async function bootstrap() {
-  // TODO: fix logging error in start
-  const app = await NestFactory.create(AppModule, {
-    logger: false,
-  });
+  const app = await NestFactory.create(AppModule);
   app.useLogger(app.get(LoggerService));
 
   const options = new DocumentBuilder()

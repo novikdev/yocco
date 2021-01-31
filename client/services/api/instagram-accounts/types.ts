@@ -1,5 +1,5 @@
 export interface IInstagramAccount {
-  id: number;
+  id: string;
   username: string;
   profilePicture: string;
   isDefault: boolean;

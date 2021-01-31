@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import { addIgAccountStats, setIgAccountStats } from './actions';
 
 export type IgAccountStatsState = {
-  igAccountId: number | null;
+  igAccountId: string | null;
   status: LoadingStatus;
   allDates: string[];
   byDates: {
