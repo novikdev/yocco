@@ -17,7 +17,7 @@ export const selectIgAccountStatsStatus = createSelector(
 
 export const selectLoadedStatsIgAccountId = createSelector(
   selectIgAccountStatsRoot,
-  (stats): number | null => stats.igAccountId
+  (stats): string | null => stats.igAccountId
 );
 
 export const selectLoadedStatsRange = createSelector(

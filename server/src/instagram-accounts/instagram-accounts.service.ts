@@ -1,5 +1,5 @@
 import { arrayToMap, isFilled } from '@common/functions';
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ForbiddenException, forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize-typescript';
 import { IBatchRequest, IIgAccount } from '../facebook/facebook.types';
@@ -16,6 +16,8 @@ import { IgAccountHourStatsDto } from './dtos/instagram-account-stats.dto';
 import { format } from 'date-fns';
 import { DATE_ISO_FORMAT } from '@common/services/dates.service';
 import { Logger } from '@nestjs/common';
+import { User } from '../users/user.model';
+import { WhereOptions } from 'sequelize';
 
 const FB_BATCH_LIMIT = 50;
 
@@ -30,12 +32,17 @@ export class InstagramAccountsService {
     private userIgAccauntModel: typeof UserInstagramAccount,
     @InjectModel(IgAccountHourStats)
     private igAccauntHourStatsModel: typeof IgAccountHourStats,
+    @Inject(forwardRef(() => FacebookService))
     private readonly fbService: FacebookService,
     private readonly usersService: UsersService,
     private readonly sequelize: Sequelize,
   ) {}
 
   async syncWithFacebook(userId: number): Promise<void> {
+    this.logger.debug(`
+      ===> syncWithFacebook
+        userId: ${userId}
+    `);
     try {
       const user = await this.usersService.getById(userId);
 
@@ -43,25 +50,57 @@ export class InstagramAccountsService {
         user.facebookId,
         user.facebookAccessToken,
       );
-      const savedIgAccounts = await user.$get('instagramAccounts');
-      const savedIgAccountsMap = arrayToMap(savedIgAccounts, 'fbIgAccountId');
 
-      const newIgAccounts: IIgAccount[] = fbIgAccounts.filter(
-        ({ fbIgAccountId }) => !savedIgAccountsMap.has(fbIgAccountId),
-      );
+      this.logger.debug(`
+          fbIgAccounts: ${fbIgAccounts.map(({ username }) => username).join(',')}
+      `);
 
-      if (newIgAccounts.length > 0) {
-        const isDefault = savedIgAccounts.length === 0 && newIgAccounts.length === 1;
-        await this.sequelize.transaction(async (transaction) => {
-          const newSavedIgAccounts = await InstagramAccount.bulkCreate(newIgAccounts, {
-            transaction,
-          });
-          await user.$add('instagramAccounts', newSavedIgAccounts, {
-            transaction,
-            through: isDefault ? { isDefault } : undefined,
-          });
+      const defaultIgAccount = await this.userIgAccauntModel.findOne({
+        where: {
+          userId,
+          isDefault: true,
+        },
+        paranoid: false,
+      });
+
+      this.logger.debug(`
+          defaultIgAccountId: ${defaultIgAccount?.igAccountId}
+      `);
+
+      await this.sequelize.transaction(async (transaction) => {
+        const savedIgAccounts = await InstagramAccount.bulkCreate(fbIgAccounts, {
+          transaction,
+          updateOnDuplicate: ['username', 'fbIgBusinessAccountId', 'profilePicture'],
         });
-      }
+
+        this.logger.debug(`
+            fbIgAccounts are saved
+        `);
+
+        await this.userIgAccauntModel.destroy({
+          where: { userId },
+          transaction,
+          force: true,
+        });
+
+        this.logger.debug(`
+            old relations are removed
+        `);
+
+        const userIgAccounts = savedIgAccounts.map(({ id }, index) => ({
+          userId,
+          igAccountId: id,
+          fbAccessToken: fbIgAccounts[index].fbAccessToken,
+          isDefault: id === defaultIgAccount?.igAccountId || fbIgAccounts.length === 1 || undefined,
+        }));
+        await this.userIgAccauntModel.bulkCreate(userIgAccounts, {
+          transaction,
+        });
+
+        this.logger.debug(`
+            new relations are created
+        `);
+      });
     } catch (err) {
       throw new Error("Couldn't sync user instagram accounts with facebook: " + err.message);
     }
@@ -117,7 +156,9 @@ export class InstagramAccountsService {
     return stats;
   }
 
-  private async getAllIgAccountsWithStats(): Promise<InstagramAccount[]> {
+  private async getAllIgAccountsWithStats(): Promise<
+    (InstagramAccount & { user: (User & { UserInstagramAccount: UserInstagramAccount })[] })[]
+  > {
     return this.igAccauntModel.findAll({
       include: [
         {
@@ -125,8 +166,35 @@ export class InstagramAccountsService {
           order: [['datetime', 'DESC']],
           limit: 1,
         },
+        {
+          model: User,
+          required: true,
+          through: {
+            attributes: ['fbAccessToken'],
+          },
+        },
       ],
+    }) as Promise<
+      (InstagramAccount & { user: (User & { UserInstagramAccount: UserInstagramAccount })[] })[]
+    >;
+  }
+
+  public async destroyUsersAccounts(userIds: User['id'][]) {
+    this.userIgAccauntModel.destroy({
+      where: {
+        userId: {
+          [Op.or]: userIds,
+        },
+      },
     });
+  }
+
+  private getIgAccountFbAccessToken(
+    igAccount: InstagramAccount & {
+      user: (User & { UserInstagramAccount: UserInstagramAccount })[];
+    },
+  ): string {
+    return igAccount.user[0].UserInstagramAccount.fbAccessToken;
   }
 
   @Cron(CronExpression.EVERY_HOUR)
@@ -143,7 +211,7 @@ export class InstagramAccountsService {
               search: {
                 fields: 'followers_count',
               },
-              access_token: igAccount.fbAccessToken,
+              access_token: this.getIgAccountFbAccessToken(igAccount),
             },
             {
               method: 'get',
@@ -152,14 +220,14 @@ export class InstagramAccountsService {
                 metric: 'follower_count',
                 period: 'day',
               },
-              access_token: igAccount.fbAccessToken,
+              access_token: this.getIgAccountFbAccessToken(igAccount),
             },
           ])
           .flat();
 
         const responses = await this.fbService.sendBtach({
           batch: requests,
-          access_token: igAccountsChunk[0].fbAccessToken,
+          access_token: this.getIgAccountFbAccessToken(igAccountsChunk[0]),
           include_headers: false,
         });
 

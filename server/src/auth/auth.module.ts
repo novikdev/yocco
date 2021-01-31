@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { UsersModule } from '../users/users.module';
 import { PassportModule } from '@nestjs/passport';
 import { FacebookStrategy } from './facebook.strategy';
@@ -15,12 +15,13 @@ import { AuthToken } from './auth-token.model';
   controllers: [AuthController],
   imports: [
     SequelizeModule.forFeature([AuthToken]),
+    forwardRef(() => FacebookModule),
+    forwardRef(() => InstagramAccountsModule),
     UsersModule,
     PassportModule,
-    FacebookModule,
-    InstagramAccountsModule,
     AppConfigModule,
   ],
+  exports: [AuthService],
   providers: [AuthService, FacebookStrategy, JwtStrategy],
 })
 export class AuthModule {}

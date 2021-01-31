@@ -25,7 +25,13 @@ export class UserInstagramAccount extends Model<UserInstagramAccount> {
   @Column({
     field: 'ig_account_id',
   })
-  igAccountId: number;
+  igAccountId: string;
+
+  @Column({
+    allowNull: false,
+    field: 'fb_access_token',
+  })
+  fbAccessToken: string;
 
   @Column({
     field: 'is_default',

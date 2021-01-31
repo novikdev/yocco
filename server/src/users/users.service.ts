@@ -5,6 +5,7 @@ import { UserDto } from './dtos/user.dto';
 import { IUser } from './user.interfaces';
 import { User } from './user.model';
 import { Sequelize } from 'sequelize-typescript';
+import { FindAttributeOptions, Op } from 'sequelize';
 
 @Injectable()
 export class UsersService {
@@ -46,15 +47,31 @@ export class UsersService {
     return user && new UserDto(user);
   }
 
-  getByFacebookId(facebookId: string): Promise<User> {
+  public getByFacebookId(facebookId: string): Promise<User> {
     return this.userModel.findOne({
       where: { facebookId },
     });
   }
 
-  async setDefaultIgAccount(userId: number, newDefaultIgAccountId: number): Promise<void> {
-    const user = await this.userModel.findOne({
-      where: { id: userId },
+  public getByFacebookIds(
+    facebookIds: string[],
+    attributes?: FindAttributeOptions,
+  ): Promise<User[]> {
+    return this.userModel.findAll({
+      where: {
+        facebookId: {
+          [Op.or]: facebookIds,
+        },
+      },
+      attributes,
+    });
+  }
+
+  public async setDefaultIgAccount(
+    userId: number,
+    newDefaultIgAccountId: InstagramAccount['id'],
+  ): Promise<void> {
+    const user = await this.userModel.findByPk(userId, {
       include: [
         {
           model: InstagramAccount,

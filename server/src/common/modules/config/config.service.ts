@@ -57,6 +57,10 @@ export class AppConfigService {
     return this.configService.get<string>('FACEBOOK_APP_SECRET')!;
   }
 
+  get fbWebhookVerifyToken(): string {
+    return this.configService.get<string>('FACEBOOK_WEBHOOK_VERIFY_TOKEN')!;
+  }
+
   get dbConfig(): DbConfig {
     return {
       host: this.configService.get<string>('POSTGRES_HOST')!,

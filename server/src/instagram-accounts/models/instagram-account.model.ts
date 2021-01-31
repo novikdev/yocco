@@ -1,4 +1,3 @@
-import { UnderscoredIndex } from '@common/decorators';
 import {
   DataType,
   Column,
@@ -19,18 +18,10 @@ import { UserInstagramAccount } from './user-instagram-account.model';
 })
 export class InstagramAccount extends Model<InstagramAccount> {
   @Column({
-    autoIncrement: true,
     primaryKey: true,
     unique: true,
   })
-  id: number;
-
-  @UnderscoredIndex
-  @Column({
-    allowNull: false,
-    field: 'fb_ig_account_id',
-  })
-  fbIgAccountId: string;
+  id: string;
 
   @Column({
     allowNull: false,
@@ -49,12 +40,6 @@ export class InstagramAccount extends Model<InstagramAccount> {
     field: 'profile_picture',
   })
   profilePicture: string;
-
-  @Column({
-    allowNull: false,
-    field: 'fb_access_token',
-  })
-  fbAccessToken: string;
 
   @BelongsToMany(() => User, () => UserInstagramAccount, 'ig_account_id', 'user_id')
   user: User[];

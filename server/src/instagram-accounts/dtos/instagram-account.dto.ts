@@ -4,7 +4,7 @@ import { UserInstagramAccount } from '../models/user-instagram-account.model';
 
 export class InstagramAccountDto {
   @ApiProperty()
-  id: number;
+  id: string;
 
   @ApiProperty()
   username: string;

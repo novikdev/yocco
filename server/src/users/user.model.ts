@@ -11,7 +11,7 @@ import {
 import { UnderscoredIndex } from '@common/decorators';
 import { UserInstagramAccount } from '../instagram-accounts/models/user-instagram-account.model';
 import { InstagramAccount } from '../instagram-accounts/models/instagram-account.model';
-import { AuthToken } from 'src/auth/auth-token.model';
+import { AuthToken } from '../auth/auth-token.model';
 
 @Table({
   tableName: 'users',

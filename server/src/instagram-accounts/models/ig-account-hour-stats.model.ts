@@ -25,7 +25,7 @@ export class IgAccountHourStats extends Model<IgAccountHourStats> {
   @Column({
     field: 'ig_account_id',
   })
-  igAccountId: number;
+  igAccountId: string;
 
   @Index
   @Column
