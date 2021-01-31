@@ -1,8 +1,8 @@
-import { arrayToMap, isFilled } from '@common/functions';
+import { isFilled } from '@common/functions';
 import { ForbiddenException, forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize-typescript';
-import { IBatchRequest, IIgAccount } from '../facebook/facebook.types';
+import { IBatchRequest } from '../facebook/facebook.types';
 import { FacebookService } from '../facebook/facebook.service';
 import { UsersService } from '../users/users.service';
 import { InstagramAccountDto } from './dtos/instagram-account.dto';
@@ -17,7 +17,6 @@ import { format } from 'date-fns';
 import { DATE_ISO_FORMAT } from '@common/services/dates.service';
 import { Logger } from '@nestjs/common';
 import { User } from '../users/user.model';
-import { WhereOptions } from 'sequelize';
 
 const FB_BATCH_LIMIT = 50;
 
@@ -199,8 +198,16 @@ export class InstagramAccountsService {
 
   @Cron(CronExpression.EVERY_HOUR)
   private async updateIgAccountsStats() {
+    this.logger.debug(`
+      ===> updateIgAccountsStats (1)
+        start
+    `);
     try {
       const igAccounts = await this.getAllIgAccountsWithStats();
+      this.logger.debug(`
+        ===> updateIgAccountsStats (2)
+          select ig accounts: ${igAccounts.map(({ username }) => username).join(',')}
+      `);
       const igAccountsChunks = chunk(igAccounts, FB_BATCH_LIMIT / 2);
       for (const igAccountsChunk of igAccountsChunks) {
         const requests = igAccountsChunk
@@ -231,13 +238,18 @@ export class InstagramAccountsService {
           include_headers: false,
         });
 
+        this.logger.debug(`
+          ===> updateIgAccountsStats (3)
+            get fb responses
+        `);
+
         const hourStats = igAccountsChunk
           .map((igAccount, i) => {
             const followersCountResIndex = i * 2;
             const insightsResIndex = followersCountResIndex + 1;
 
             this.logger.debug(`
-              ===> updateIgAccountsStats
+              ===> updateIgAccountsStats (4)
                 igAccount: ${igAccount.id}
                 followersCountResponse: ${JSON.stringify(responses[followersCountResIndex])}
                 insightsResponse: ${JSON.stringify(responses[insightsResIndex])}
@@ -298,8 +310,16 @@ export class InstagramAccountsService {
           returning: true,
         });
       }
+      this.logger.debug(`
+        ===> updateIgAccountsStats (5)
+          Ig accounts stats is updated successfully
+      `);
     } catch (err) {
-      console.error("Couldn't update ig accounts stats: " + err.message);
+      this.logger.error(`
+        ===> updateIgAccountsStats
+          Couldn't update ig accounts stats:
+            ${err.mesage}
+      `);
     }
   }
 }
