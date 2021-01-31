@@ -13,8 +13,9 @@ export const requiredFbPermissions = [
   FbPermission.PagesReadEngagement, // нужен для instqgram_basic
   FbPermission.InstagramBasic, // для получения подписчиков (GET /{ig-account-id})
   FbPermission.InstagramManageInsights, // для получения количества новых подписчиков (GET /{ig-account-id}/insights)
-  FbPermission.AdsManagement, // для получения количества новых подписчиков, если доступ к странице предоставлен через Бизнес-менеджер (GET /{ig-account-id}/insights)
-  FbPermission.BusinessManagement, // для получения количества новых подписчиков, если доступ к странице предоставлен через Бизнес-менеджер (GET /{ig-account-id}/insights)
+  // Next permissions were not accepted by fb reviewer
+  // FbPermission.AdsManagement, // для получения количества новых подписчиков, если доступ к странице предоставлен через Бизнес-менеджер (GET /{ig-account-id}/insights)
+  // FbPermission.BusinessManagement, // для получения количества новых подписчиков, если доступ к странице предоставлен через Бизнес-менеджер (GET /{ig-account-id}/insights)
 ];
 
 @Injectable()
