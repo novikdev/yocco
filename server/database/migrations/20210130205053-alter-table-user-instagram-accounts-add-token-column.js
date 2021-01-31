@@ -1,8 +1,8 @@
 'use strict';
 
 module.exports = {
-  up: async (queryInterface) => {
-    await queryInterface.sequelize.transaction((transaction) =>
+  up: (queryInterface) =>
+    queryInterface.sequelize.transaction((transaction) =>
       queryInterface.sequelize.query(
         `
           DROP TABLE "ig_account_hour_stats";
@@ -53,8 +53,7 @@ module.exports = {
         `,
         { transaction },
       ),
-    );
-  },
+    ),
 
   down: (queryInterface) =>
     queryInterface.sequelize.transaction((transaction) =>
