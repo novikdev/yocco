@@ -1,3 +1,6 @@
+const AGREEMENT_URL =
+  'https://docs.google.com/document/d/e/2PACX-1vTHhjaaXWMvmkDhjtEbmqvbTqAiQ8NgGox42KfkJ7y3xcQGW-A2fynwtCXgECl5rUSZfBFlRs-VYkWG/pub';
+
 export default {
   name: 'Yocco',
   slug: 'yocco',
@@ -34,9 +37,11 @@ export default {
   extra: {
     production: {
       API_URL: 'https://yocco.ru/api',
+      AGREEMENT_URL,
     },
     development: {
       API_URL: 'http://localhost:3000',
+      AGREEMENT_URL,
     },
   },
 };

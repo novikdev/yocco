@@ -3,7 +3,7 @@ export const theme = {
   colors: {
     white: 'white',
     black: '#151515',
-    darkPurple: '#9145F2',
+    darkPurple: '#6A37C7',
     lightPurple: '#f4ebff',
     lightGrey: '#e8ecee',
     darkGrey: '#616161',
