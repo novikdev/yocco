@@ -2,8 +2,9 @@ import { theme } from '@services/theme';
 import styled from 'styled-components/native';
 
 export const ProfileHeader = styled.View`
-  flex: 1;
+  display: flex;
   height: 128px;
+  width: 100%;
   margin-bottom: 24px;
   align-items: center;
   flex-direction: row;
