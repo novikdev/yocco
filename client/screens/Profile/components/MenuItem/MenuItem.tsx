@@ -16,8 +16,8 @@ export function MenuItem(props: Props) {
 }
 
 const MenuItemContent = styled.View`
-  flex: 1;
-  height: 64px;
+  display: flex;
+  height: 48px;
   color: ${theme.colors.white};
   border-bottom-width: 2px;
   border-bottom-color: ${theme.colors.lightGrey};

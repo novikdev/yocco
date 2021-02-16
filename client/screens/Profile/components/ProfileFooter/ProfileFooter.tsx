@@ -1,7 +1,7 @@
 import styled from 'styled-components/native';
 
 export const ProfileFooter = styled.View`
-  flex: 1;
+  display: flex;
   height: 64px;
   justify-content: center;
   align-items: center;
