@@ -33,6 +33,7 @@ export default {
       foregroundImage: './assets/images/adaptive-icon.png',
       backgroundColor: '#6A37C7',
     },
+    permissions: [],
   },
   web: {
     favicon: './assets/images/favicon.png',
