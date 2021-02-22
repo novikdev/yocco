@@ -37,12 +37,17 @@ export class InstagramAccountsService {
     private readonly sequelize: Sequelize,
   ) {}
 
-  async syncWithFacebook(userId: number): Promise<void> {
+  /**
+   * Fetch all instagram accounts from Facebook and save them into DB for user with id === userId
+   * Returns array with new accounts
+   */
+  public async syncWithFacebook(userId: number): Promise<InstagramAccount['id'][]> {
     this.logger.debug(`
-      ===> syncWithFacebook
+      ===> syncWithFacebook (1)
         userId: ${userId}
     `);
     try {
+      let newIgAccountsIds: InstagramAccount['id'][] = [];
       const user = await this.usersService.getById(userId);
 
       const fbIgAccounts = await this.fbService.getAllUserInstagramAccounts(
@@ -51,18 +56,21 @@ export class InstagramAccountsService {
       );
 
       this.logger.debug(`
+        ===> syncWithFacebook (2)
           fbIgAccounts: ${fbIgAccounts.map(({ username }) => username).join(',')}
       `);
 
-      const defaultIgAccount = await this.userIgAccauntModel.findOne({
+      const igAccounts = await this.userIgAccauntModel.findAll({
         where: {
           userId,
-          isDefault: true,
         },
         paranoid: false,
       });
 
+      const defaultIgAccount = igAccounts.find(({ isDefault }) => isDefault);
+
       this.logger.debug(`
+        ===> syncWithFacebook (3)
           defaultIgAccountId: ${defaultIgAccount?.igAccountId}
       `);
 
@@ -72,8 +80,19 @@ export class InstagramAccountsService {
           updateOnDuplicate: ['username', 'fbIgBusinessAccountId', 'profilePicture'],
         });
 
+        newIgAccountsIds = savedIgAccounts
+          .filter((savedIgAccount) => {
+            const igAccount = igAccounts.find(
+              ({ igAccountId }) => igAccountId === savedIgAccount.id,
+            );
+            return !igAccount || igAccount.deletedAt !== null;
+          })
+          .map(({ id }) => id);
+
         this.logger.debug(`
+          ===> syncWithFacebook (4)
             fbIgAccounts are saved
+            new ig accounts ids: [${newIgAccountsIds}]
         `);
 
         await this.userIgAccauntModel.destroy({
@@ -83,6 +102,7 @@ export class InstagramAccountsService {
         });
 
         this.logger.debug(`
+          ===> syncWithFacebook (5)
             old relations are removed
         `);
 
@@ -97,10 +117,18 @@ export class InstagramAccountsService {
         });
 
         this.logger.debug(`
+          ===> syncWithFacebook (6)
             new relations are created
         `);
       });
+
+      return newIgAccountsIds;
     } catch (err) {
+      this.logger.error(`
+        ===> syncWithFacebook (catch)
+          Couldn't sync user instagram accounts with facebook:
+          ${err.message}
+      `);
       throw new Error("Couldn't sync user instagram accounts with facebook: " + err.message);
     }
   }
@@ -155,10 +183,14 @@ export class InstagramAccountsService {
     return stats;
   }
 
-  private async getAllIgAccountsWithStats(): Promise<
+  private async getIgAccountsWithStats(
+    igAccountIds?: InstagramAccount['id'][],
+  ): Promise<
     (InstagramAccount & { user: (User & { UserInstagramAccount: UserInstagramAccount })[] })[]
   > {
+    const where = igAccountIds ? { id: igAccountIds } : undefined;
     return this.igAccauntModel.findAll({
+      where,
       include: [
         {
           model: IgAccountHourStats,
@@ -197,13 +229,13 @@ export class InstagramAccountsService {
   }
 
   @Cron(CronExpression.EVERY_HOUR)
-  private async updateIgAccountsStats() {
+  public async updateIgAccountsStats(igAccountsIds?: InstagramAccount['id'][]) {
     this.logger.debug(`
       ===> updateIgAccountsStats (1)
-        start
+        igAccountIds: [${igAccountsIds}]
     `);
     try {
-      const igAccounts = await this.getAllIgAccountsWithStats();
+      const igAccounts = await this.getIgAccountsWithStats(igAccountsIds);
       this.logger.debug(`
         ===> updateIgAccountsStats (2)
           select ig accounts: ${igAccounts.map(({ username }) => username).join(',')}

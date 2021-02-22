@@ -78,7 +78,11 @@ export class AuthService {
         });
       }
 
-      await this.igAccountsService.syncWithFacebook(user.id);
+      const newIgAccountsIds = await this.igAccountsService.syncWithFacebook(user.id);
+
+      if (newIgAccountsIds.length > 0) {
+        await this.igAccountsService.updateIgAccountsStats(newIgAccountsIds);
+      }
 
       const userToken = await this.authTokenModel.create({
         userId: user.id,
