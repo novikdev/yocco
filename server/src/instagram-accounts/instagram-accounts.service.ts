@@ -124,11 +124,14 @@ export class InstagramAccountsService {
 
       return newIgAccountsIds;
     } catch (err) {
-      this.logger.error(`
+      this.logger.error(
+        `
         ===> syncWithFacebook (catch)
           Couldn't sync user instagram accounts with facebook:
           ${err.message}
-      `);
+      `,
+        err.stack,
+      );
       throw new Error("Couldn't sync user instagram accounts with facebook: " + err.message);
     }
   }
@@ -347,11 +350,14 @@ export class InstagramAccountsService {
           Ig accounts stats is updated successfully
       `);
     } catch (err) {
-      this.logger.error(`
+      this.logger.error(
+        `
         ===> updateIgAccountsStats
           Couldn't update ig accounts stats:
-            ${err.mesage}
-      `);
+            ${err.message}
+      `,
+        err.stack,
+      );
     }
   }
 }

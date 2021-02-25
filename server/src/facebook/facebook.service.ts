@@ -282,11 +282,14 @@ export class FacebookService {
       await this.igAccountsService.destroyUsersAccounts(userIds);
       return;
     } catch (err) {
-      this.logger.error(`
+      this.logger.error(
+        `
         ===> handlePermissionsChange
           Couldn't handle fb permissions webhook
           ${err.message}
-      `);
+      `,
+        err.stack,
+      );
     }
   }
 }
