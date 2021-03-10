@@ -7,12 +7,14 @@ import { InstagramAccountsController } from './instagram-accounts.controller';
 import { InstagramAccountsService } from './instagram-accounts.service';
 import { UserInstagramAccount } from './models/user-instagram-account.model';
 import { IgAccountHourStats } from './models/ig-account-hour-stats.model';
+import { AppConfigModule } from '@common/modules/config';
 
 @Module({
   imports: [
     SequelizeModule.forFeature([InstagramAccount, UserInstagramAccount, IgAccountHourStats]),
     forwardRef(() => FacebookModule),
     UsersModule,
+    AppConfigModule,
   ],
   exports: [InstagramAccountsService],
   controllers: [InstagramAccountsController],

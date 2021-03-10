@@ -17,6 +17,7 @@ import { format } from 'date-fns';
 import { DATE_ISO_FORMAT } from '@common/services/dates.service';
 import { Logger } from '@nestjs/common';
 import { User } from '../users/user.model';
+import { AppConfigService } from '@common/modules/config';
 
 const FB_BATCH_LIMIT = 50;
 
@@ -35,6 +36,7 @@ export class InstagramAccountsService {
     private readonly fbService: FacebookService,
     private readonly usersService: UsersService,
     private readonly sequelize: Sequelize,
+    private readonly configService: AppConfigService,
   ) {}
 
   /**
@@ -238,6 +240,7 @@ export class InstagramAccountsService {
         igAccountIds: [${igAccountsIds}]
     `);
     try {
+      const appAccessToken = this.configService.fbAppId + '|' + this.configService.fbAppSecret;
       const igAccounts = await this.getIgAccountsWithStats(igAccountsIds);
       this.logger.debug(`
         ===> updateIgAccountsStats (2)
@@ -269,7 +272,7 @@ export class InstagramAccountsService {
 
         const responses = await this.fbService.sendBtach({
           batch: requests,
-          access_token: this.getIgAccountFbAccessToken(igAccountsChunk[0]),
+          access_token: appAccessToken,
           include_headers: false,
         });
 
