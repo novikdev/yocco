@@ -7,6 +7,7 @@ import { addIgAccountStats, setIgAccountStats } from './actions';
 
 export type IgAccountStatsState = {
   igAccountId: string | null;
+  tempStats: IHourIgAccountStats | null;
   status: LoadingStatus;
   allDates: string[];
   byDates: {
@@ -20,6 +21,7 @@ export type IgAccountStatsState = {
 const initialState: IgAccountStatsState = {
   status: LoadingStatus.Idle,
   igAccountId: null,
+  tempStats: null,
   allDates: [],
   byDates: {},
 };

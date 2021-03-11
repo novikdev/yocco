@@ -19,4 +19,13 @@ export class InstagramAccounts {
     );
     return response.data;
   }
+
+  public static async getAccountTempStats(
+    accountId: IInstagramAccount['id']
+  ): Promise<IHourIgAccountStats> {
+    const response = await api.get<IHourIgAccountStats>(
+      `${InstagramAccounts.baseUrl}/${accountId}/temp-stats`
+    );
+    return response.data;
+  }
 }

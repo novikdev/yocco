@@ -31,7 +31,7 @@ export class InstagramAccountsController {
     description: 'Get Instagram Account Stats',
   })
   getAccountStats(
-    @Param('id') igAccountId: number,
+    @Param('id') igAccountId: string,
     @Query(new ValidationPipe()) query: IgAccountStatsQueryDto,
     @Req() req: RequestWithUserId,
   ): Promise<IgAccountHourStatsDto[]> {
@@ -44,5 +44,18 @@ export class InstagramAccountsController {
     const from = new Date(query.from);
     const to = new Date(query.to);
     return this.igAccountsService.getStats(req.user.id, igAccountId, from, to);
+  }
+
+  @Get(':id/temp-stats')
+  @ApiOkResponse({
+    description: 'Returns temp Instagram Account Stats (since last saved stats til now)',
+  })
+  getAccountTempStats(@Param('id') igAccountId: string, @Req() req: RequestWithUserId) {
+    this.logger.debug(`
+      ===> getAccountTempStats
+        igAccountId: ${igAccountId}
+        userId: ${req.user.id}
+    `);
+    return this.igAccountsService.getIgAccountStats(req.user.id, igAccountId);
   }
 }

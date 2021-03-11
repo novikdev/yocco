@@ -19,7 +19,7 @@ function ListTitle(props: Props) {
         </Text>
       </Column>
       <Column>
-        <Text size="body" color={theme.colors.black}>
+        <Text size="body" color="blue">
           Δ
         </Text>
       </Column>

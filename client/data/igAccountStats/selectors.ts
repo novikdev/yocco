@@ -1,6 +1,7 @@
 import { AppState } from '@data/reducer';
 import { LoadingStatus } from '@data/types';
 import { createSelector } from '@reduxjs/toolkit';
+import { IHourIgAccountStats } from '@services/api/instagram-accounts';
 import { igAccountStatsReducer } from './reducer';
 
 const selectIgAccountStatsRoot = (state: AppState) => state[igAccountStatsReducer.name];
@@ -38,4 +39,9 @@ export const selectIgAccountStats = createSelector(
       },
       data: byDates[date].hours,
     }))
+);
+
+export const selectIgAccountTempStats = createSelector(
+  selectIgAccountStatsRoot,
+  (stats): IHourIgAccountStats | null => stats.tempStats
 );

@@ -1,5 +1,5 @@
 import { IHourIgAccountStats, InstagramAccounts } from '@services/api/instagram-accounts';
-import { call, put, select, takeLatest } from 'redux-saga/effects';
+import { all, call, put, select, takeLatest } from 'redux-saga/effects';
 import * as actions from './actions';
 import { selectLoadedStatsRange, Range, selectLoadedStatsIgAccountId } from './selectors';
 import { differenceInHours, endOfDay, startOfDay, subDays } from 'date-fns';
@@ -8,7 +8,26 @@ import { Alert } from 'react-native';
 
 const RESET_AFTER_DAYS = 2;
 
-function* loadIgAccountStats({
+function* loadIgAccountTempStats({
+  payload: igAccountId,
+}: ReturnType<typeof actions.loadIgAccountStats>) {
+  yield put(actions.setIgAccountStats({ tempStats: null }));
+  try {
+    const tempStats: IHourIgAccountStats = yield call(
+      InstagramAccounts.getAccountTempStats,
+      igAccountId
+    );
+    yield put(actions.setIgAccountStats({ tempStats }));
+  } catch (err) {
+    Alert.alert('Не удалось загрузить статистику');
+  }
+}
+
+function* loadIgAccountStats(action: ReturnType<typeof actions.loadIgAccountStats>) {
+  yield all([call(loadIgAccountTempStats, action), call(loadIgAccountFreshStats, action)]);
+}
+
+function* loadIgAccountFreshStats({
   payload: igAccountId,
 }: ReturnType<typeof actions.loadIgAccountStats>) {
   const currentIgAccountId: string | null = yield select(selectLoadedStatsIgAccountId);
