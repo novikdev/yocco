@@ -1,6 +1,6 @@
 import React from 'react';
 import { getDeltaColor } from './services/getDeltaColor';
-import { toStringWithSign } from './services/toStringWithSign';
+import { toStringWithSign } from '../../services/toStringWithSign';
 import { Text } from '@components/Text';
 
 type Props = {

@@ -21,6 +21,10 @@ import { AppConfigService } from '@common/modules/config';
 
 const FB_BATCH_LIMIT = 50;
 
+type InstagramAccountWithStats = InstagramAccount & {
+  user: (User & { UserInstagramAccount: UserInstagramAccount })[];
+};
+
 @Injectable()
 export class InstagramAccountsService {
   private readonly logger = new Logger(InstagramAccountsService.name);
@@ -148,7 +152,10 @@ export class InstagramAccountsService {
     }
   }
 
-  private async doesUserHaveAccessToIgAccount(userId: number, igAccountId: number) {
+  private async doesUserHaveAccessToIgAccount(
+    userId: User['id'],
+    igAccountId: InstagramAccount['id'],
+  ) {
     const association = await this.userIgAccauntModel.findOne({
       where: {
         userId,
@@ -161,8 +168,8 @@ export class InstagramAccountsService {
   }
 
   async getStats(
-    userId: number,
-    igAccountId: number,
+    userId: User['id'],
+    igAccountId: InstagramAccount['id'],
     from: Date,
     to: Date,
   ): Promise<IgAccountHourStatsDto[]> {
@@ -190,9 +197,7 @@ export class InstagramAccountsService {
 
   private async getIgAccountsWithStats(
     igAccountIds?: InstagramAccount['id'][],
-  ): Promise<
-    (InstagramAccount & { user: (User & { UserInstagramAccount: UserInstagramAccount })[] })[]
-  > {
+  ): Promise<InstagramAccountWithStats[]> {
     const where = igAccountIds ? { id: igAccountIds } : undefined;
     return this.igAccauntModel.findAll({
       where,
@@ -210,9 +215,7 @@ export class InstagramAccountsService {
           },
         },
       ],
-    }) as Promise<
-      (InstagramAccount & { user: (User & { UserInstagramAccount: UserInstagramAccount })[] })[]
-    >;
+    }) as Promise<InstagramAccountWithStats[]>;
   }
 
   public async destroyUsersAccounts(userIds: User['id'][]) {
@@ -233,6 +236,135 @@ export class InstagramAccountsService {
     return igAccount.user[0].UserInstagramAccount.fbAccessToken;
   }
 
+  public async getIgAccountStats(
+    userId: User['id'],
+    igAccountId: InstagramAccount['id'],
+  ): Promise<IgAccountHourStatsDto> {
+    this.logger.debug(`
+      ===> getIgAccountStats (1)
+        igAccountId: ${igAccountId}
+    `);
+    const isAllowed = await this.doesUserHaveAccessToIgAccount(userId, igAccountId);
+    if (!isAllowed) {
+      throw new ForbiddenException(`You do not have access to ig account with id ${igAccountId}`);
+    }
+    const igAccounts = await this.getIgAccountsWithStats([igAccountId]);
+    this.logger.debug(`
+        ===> getIgAccountStats (2)
+          select ig accounts: ${igAccounts.map(({ username }) => username).join(',')}
+      `);
+    const [hourStats] = await this.getIgAccountsStats(igAccounts);
+    if (!hourStats) {
+      throw new Error('Error on fetching and preparing current account ig account stats');
+    }
+
+    return new IgAccountHourStatsDto(hourStats);
+  }
+
+  private async getIgAccountsStats(igAccounts: InstagramAccountWithStats[]) {
+    this.logger.debug(`
+      ===> getIgAccountsStats (1)
+        igAccountIds: [${igAccounts.map(({ username }) => username).join(',')}]
+    `);
+    const maxIgAccountsLength = FB_BATCH_LIMIT / 2;
+    if (igAccounts.length > maxIgAccountsLength) {
+      throw new Error(`Max igAccounts array length is ${maxIgAccountsLength}`);
+    }
+    const appAccessToken = this.configService.fbAppId + '|' + this.configService.fbAppSecret;
+    const requests = igAccounts
+      .map((igAccount): IBatchRequest[] => [
+        {
+          method: 'get',
+          relative_url: `${igAccount.fbIgBusinessAccountId}`,
+          search: {
+            fields: 'followers_count',
+          },
+          access_token: this.getIgAccountFbAccessToken(igAccount),
+        },
+        {
+          method: 'get',
+          relative_url: `${igAccount.fbIgBusinessAccountId}/insights`,
+          search: {
+            metric: 'follower_count',
+            period: 'day',
+          },
+          access_token: this.getIgAccountFbAccessToken(igAccount),
+        },
+      ])
+      .flat();
+
+    const responses = await this.fbService.sendBtach({
+      batch: requests,
+      access_token: appAccessToken,
+      include_headers: false,
+    });
+
+    this.logger.debug(`
+      ===> getIgAccountsStats (3)
+        get fb responses
+    `);
+
+    return igAccounts.map((igAccount, i) => {
+      const followersCountResIndex = i * 2;
+      const insightsResIndex = followersCountResIndex + 1;
+
+      this.logger.debug(`
+          ===> getIgAccountsStats (4)
+            igAccount: ${igAccount.id}
+            followersCountResponse: ${JSON.stringify(responses[followersCountResIndex])}
+            insightsResponse: ${JSON.stringify(responses[insightsResIndex])}
+        `);
+      // TODO: handle `code !== 200`
+      if (
+        responses[followersCountResIndex]?.code !== 200 ||
+        responses[insightsResIndex]?.code !== 200
+      ) {
+        return null;
+      }
+
+      let totalFollowersCount;
+      let insights;
+      try {
+        totalFollowersCount = JSON.parse(responses[followersCountResIndex].body)?.followers_count;
+        insights = JSON.parse(responses[insightsResIndex].body)?.data[0].values[1];
+      } catch (err) {
+        console.error(err);
+        return null;
+      }
+
+      const lastSavedStats: IgAccountHourStats | undefined = igAccount.stats[0];
+
+      let followsCount = 0;
+      let deltaFollowersCount = 0;
+
+      if (lastSavedStats) {
+        followsCount = insights.value;
+        deltaFollowersCount = totalFollowersCount - lastSavedStats.totalFollowersCount;
+
+        const lastSavedStatsFbDay = format(
+          new Date(lastSavedStats.rawFollowsDatetime),
+          DATE_ISO_FORMAT,
+        );
+        const resStatsFbDay = format(new Date(insights.end_time), DATE_ISO_FORMAT);
+
+        if (lastSavedStatsFbDay === resStatsFbDay) {
+          followsCount = followsCount - lastSavedStats.rawFollowsCount;
+        }
+      }
+
+      return {
+        igAccountId: igAccount.id,
+        datetime: new Date(),
+        followsCount,
+        unfollowsCount: followsCount - deltaFollowersCount,
+        deltaFollowersCount,
+        totalFollowersCount,
+        rawFollowsCount: insights.value,
+        rawFollowsDatetime: insights.end_time,
+      };
+    });
+  }
+
   @Cron(CronExpression.EVERY_HOUR)
   public async updateIgAccountsStats(igAccountsIds?: InstagramAccount['id'][]) {
     this.logger.debug(`
@@ -240,7 +372,6 @@ export class InstagramAccountsService {
         igAccountIds: [${igAccountsIds}]
     `);
     try {
-      const appAccessToken = this.configService.fbAppId + '|' + this.configService.fbAppSecret;
       const igAccounts = await this.getIgAccountsWithStats(igAccountsIds);
       this.logger.debug(`
         ===> updateIgAccountsStats (2)
@@ -248,108 +379,14 @@ export class InstagramAccountsService {
       `);
       const igAccountsChunks = chunk(igAccounts, FB_BATCH_LIMIT / 2);
       for (const igAccountsChunk of igAccountsChunks) {
-        const requests = igAccountsChunk
-          .map((igAccount): IBatchRequest[] => [
-            {
-              method: 'get',
-              relative_url: `${igAccount.fbIgBusinessAccountId}`,
-              search: {
-                fields: 'followers_count',
-              },
-              access_token: this.getIgAccountFbAccessToken(igAccount),
-            },
-            {
-              method: 'get',
-              relative_url: `${igAccount.fbIgBusinessAccountId}/insights`,
-              search: {
-                metric: 'follower_count',
-                period: 'day',
-              },
-              access_token: this.getIgAccountFbAccessToken(igAccount),
-            },
-          ])
-          .flat();
-
-        const responses = await this.fbService.sendBtach({
-          batch: requests,
-          access_token: appAccessToken,
-          include_headers: false,
-        });
-
-        this.logger.debug(`
-          ===> updateIgAccountsStats (3)
-            get fb responses
-        `);
-
-        const hourStats = igAccountsChunk
-          .map((igAccount, i) => {
-            const followersCountResIndex = i * 2;
-            const insightsResIndex = followersCountResIndex + 1;
-
-            this.logger.debug(`
-              ===> updateIgAccountsStats (4)
-                igAccount: ${igAccount.id}
-                followersCountResponse: ${JSON.stringify(responses[followersCountResIndex])}
-                insightsResponse: ${JSON.stringify(responses[insightsResIndex])}
-            `);
-            // TODO: handle `code !== 200`
-            if (
-              responses[followersCountResIndex]?.code !== 200 ||
-              responses[insightsResIndex]?.code !== 200
-            ) {
-              return null;
-            }
-
-            let totalFollowersCount;
-            let insights;
-            try {
-              totalFollowersCount = JSON.parse(responses[followersCountResIndex].body)
-                ?.followers_count;
-              insights = JSON.parse(responses[insightsResIndex].body)?.data[0].values[1];
-            } catch (err) {
-              console.error(err);
-              return null;
-            }
-
-            const lastSavedStats: IgAccountHourStats | undefined = igAccount.stats[0];
-
-            let followsCount = 0;
-            let deltaFollowersCount = 0;
-
-            if (lastSavedStats) {
-              followsCount = insights.value;
-              deltaFollowersCount = totalFollowersCount - lastSavedStats.totalFollowersCount;
-
-              const lastSavedStatsFbDay = format(
-                new Date(lastSavedStats.rawFollowsDatetime),
-                DATE_ISO_FORMAT,
-              );
-              const resStatsFbDay = format(new Date(insights.end_time), DATE_ISO_FORMAT);
-
-              if (lastSavedStatsFbDay === resStatsFbDay) {
-                followsCount = followsCount - lastSavedStats.rawFollowsCount;
-              }
-            }
-
-            return {
-              igAccountId: igAccount.id,
-              datetime: new Date(),
-              followsCount,
-              unfollowsCount: followsCount - deltaFollowersCount,
-              deltaFollowersCount,
-              totalFollowersCount,
-              rawFollowsCount: insights.value,
-              rawFollowsDatetime: insights.end_time,
-            };
-          })
-          .filter(isFilled);
+        const hourStats = (await this.getIgAccountsStats(igAccountsChunk)).filter(isFilled);
         await this.igAccauntHourStatsModel.bulkCreate(hourStats, {
           validate: true,
           returning: true,
         });
       }
       this.logger.debug(`
-        ===> updateIgAccountsStats (5)
+        ===> updateIgAccountsStats (3)
           Ig accounts stats is updated successfully
       `);
     } catch (err) {
