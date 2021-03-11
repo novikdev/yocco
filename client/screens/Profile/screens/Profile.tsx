@@ -51,7 +51,7 @@ export function Profile() {
         </MenuItem>
 
         <ProfileFooter>
-          <Text color={theme.colors.darkGrey}>Версия 0.1.0</Text>
+          <Text color={theme.colors.darkGrey}>Версия 1.1.0</Text>
         </ProfileFooter>
       </ScrollView>
     </ScreenContainer>
