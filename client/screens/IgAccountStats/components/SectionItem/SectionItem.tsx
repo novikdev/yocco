@@ -6,16 +6,15 @@ import { IHourIgAccountStats } from '@services/api/instagram-accounts';
 import { format } from '@services/dates/format';
 import { Delta } from '../Delta';
 import { Column } from '../Column';
+import { prepareStatsForDisplaying } from '../../services/prepareStatsForDisplaying';
 
 type Props = {
   stats: IHourIgAccountStats;
 };
 
-function SectionItem({ stats }: Props) {
+function SectionItem(props: Props) {
+  const stats = prepareStatsForDisplaying(props.stats);
   const time = format(new Date(stats.datetime), 'H:00');
-  const returnedFollowersCount = stats.unfollowsCount < 0 ? stats.unfollowsCount * -1 : 0;
-  const unfollowDelta = (stats.unfollowsCount + returnedFollowersCount) * -1;
-  const followDelta = stats.followsCount + returnedFollowersCount;
   return (
     <SectionItemContainer>
       <Column width={50}>
@@ -27,10 +26,10 @@ function SectionItem({ stats }: Props) {
         <Delta value={stats.deltaFollowersCount} />
       </Column>
       <Column>
-        <Delta value={followDelta} />
+        <Delta value={stats.followsCount} />
       </Column>
       <Column>
-        <Delta value={unfollowDelta} />
+        <Delta value={stats.unfollowsCount * -1} />
       </Column>
       <Column width={90}>
         <Text size="body" color={theme.colors.black}>

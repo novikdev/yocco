@@ -7,6 +7,7 @@ import { StyleProp, View, ViewStyle } from 'react-native';
 import { selectIgAccountTempStats } from '@data/igAccountStats/selectors';
 import { useSelector } from 'react-redux';
 import { toStringWithSign } from '../../services/toStringWithSign';
+import { prepareStatsForDisplaying } from '../../services/prepareStatsForDisplaying';
 
 type Props = {
   igAccount: Pick<IInstagramAccount, 'id' | 'username' | 'profilePicture'>;
@@ -14,7 +15,9 @@ type Props = {
 };
 
 export function Header(props: Props) {
-  const stats = useSelector(selectIgAccountTempStats);
+  let stats = useSelector(selectIgAccountTempStats);
+  stats = stats && prepareStatsForDisplaying(stats);
+
   return (
     <View style={props.style}>
       <View style={{ flexDirection: 'row' }}>
@@ -41,7 +44,7 @@ export function Header(props: Props) {
                 </Text>
                 /
                 <Text size="h5" color="red">
-                  {toStringWithSign(stats.unfollowsCount)}
+                  {toStringWithSign(stats.unfollowsCount * -1)}
                 </Text>
                 {')'}
               </Text>
