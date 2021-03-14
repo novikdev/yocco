@@ -1,5 +1,5 @@
 import { isFilled } from '@common/functions';
-import { ForbiddenException, forwardRef, Inject, Injectable } from '@nestjs/common';
+import { CACHE_MANAGER, ForbiddenException, forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize-typescript';
 import { IBatchRequest } from '../facebook/facebook.types';
@@ -18,8 +18,15 @@ import { DATE_ISO_FORMAT } from '@common/services/dates.service';
 import { Logger } from '@nestjs/common';
 import { User } from '../users/user.model';
 import { AppConfigService } from '@common/modules/config';
+import { Cache } from 'cache-manager';
 
 const FB_BATCH_LIMIT = 50;
+const IG_ACCOUNT_TEMP_STATS_CACHE_KEY = 'tempIgAccountStats';
+const IG_ACCOUUNT_TEMP_STATS_CACHE_TTL = 60; // in seconds
+
+function getIgAccountTempStatsCacheKey(igAccountId: InstagramAccount['id']): string {
+  return IG_ACCOUNT_TEMP_STATS_CACHE_KEY + '-' + igAccountId;
+}
 
 type InstagramAccountWithStats = InstagramAccount & {
   user: (User & { UserInstagramAccount: UserInstagramAccount })[];
@@ -28,8 +35,10 @@ type InstagramAccountWithStats = InstagramAccount & {
 @Injectable()
 export class InstagramAccountsService {
   private readonly logger = new Logger(InstagramAccountsService.name);
+  private useIgAccountTempStatsCache = true;
 
   constructor(
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     @InjectModel(InstagramAccount)
     private igAccauntModel: typeof InstagramAccount,
     @InjectModel(UserInstagramAccount)
@@ -236,7 +245,48 @@ export class InstagramAccountsService {
     return igAccount.user[0].UserInstagramAccount.fbAccessToken;
   }
 
-  public async getIgAccountStats(
+  /**
+   *
+   * @param userId - user that calls the method
+   * @param igAccountId - ig account id to get stats
+   * @returns ig aacount temp stats since last saved to db stats
+   * @note response is cached (to IG_ACCOUUNT_TEMP_STATS_CACHE_TTL seconds) to reduce fb api calls count
+   */
+  public async getCachedIgAccountStats(
+    userId: User['id'],
+    igAccountId: InstagramAccount['id'],
+  ): Promise<IgAccountHourStatsDto> {
+    const isAllowed = await this.doesUserHaveAccessToIgAccount(userId, igAccountId);
+    if (!isAllowed) {
+      throw new ForbiddenException(`You do not have access to ig account with id ${igAccountId}`);
+    }
+    if (this.useIgAccountTempStatsCache) {
+      const cachedResult = await this.cacheManager.get<IgAccountHourStatsDto>(
+        getIgAccountTempStatsCacheKey(igAccountId),
+      );
+      if (cachedResult) {
+        return cachedResult;
+      }
+    }
+    const result = await this.getIgAccountStats(userId, igAccountId);
+    await this.cacheManager.set(getIgAccountTempStatsCacheKey(igAccountId), result, {
+      ttl: IG_ACCOUUNT_TEMP_STATS_CACHE_TTL,
+    });
+    return result;
+  }
+
+  private async clearIgAccountTempStatsCache(): Promise<void> {
+    const keys: string[] = (await this.cacheManager.store.keys?.()) ?? [];
+    await Promise.all(
+      keys.map(async (key) => {
+        if (key.startsWith(IG_ACCOUNT_TEMP_STATS_CACHE_KEY)) {
+          await this.cacheManager.del(key);
+        }
+      }),
+    );
+  }
+
+  private async getIgAccountStats(
     userId: User['id'],
     igAccountId: InstagramAccount['id'],
   ): Promise<IgAccountHourStatsDto> {
@@ -372,9 +422,14 @@ export class InstagramAccountsService {
         igAccountIds: [${igAccountsIds}]
     `);
     try {
-      const igAccounts = await this.getIgAccountsWithStats(igAccountsIds);
+      this.useIgAccountTempStatsCache = false;
       this.logger.debug(`
         ===> updateIgAccountsStats (2)
+          reset flag useIgAccountTempStatsCache
+      `);
+      const igAccounts = await this.getIgAccountsWithStats(igAccountsIds);
+      this.logger.debug(`
+        ===> updateIgAccountsStats (3)
           select ig accounts: ${igAccounts.map(({ username }) => username).join(',')}
       `);
       const igAccountsChunks = chunk(igAccounts, FB_BATCH_LIMIT / 2);
@@ -386,18 +441,29 @@ export class InstagramAccountsService {
         });
       }
       this.logger.debug(`
-        ===> updateIgAccountsStats (3)
+        ===> updateIgAccountsStats (4)
           Ig accounts stats is updated successfully
       `);
     } catch (err) {
       this.logger.error(
         `
-        ===> updateIgAccountsStats
+        ===> updateIgAccountsStats (catch)
           Couldn't update ig accounts stats:
             ${err.message}
       `,
         err.stack,
       );
+    } finally {
+      await this.clearIgAccountTempStatsCache();
+      this.logger.debug(`
+        ===> updateIgAccountsStats (5)
+          cache is cleared
+      `);
+      this.useIgAccountTempStatsCache = true;
+      this.logger.debug(`
+        ===> updateIgAccountsStats (6)
+          set flag useIgAccountTempStatsCache
+      `);
     }
   }
 }

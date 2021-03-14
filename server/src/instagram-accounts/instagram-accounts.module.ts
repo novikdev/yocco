@@ -1,4 +1,4 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { CacheModule, forwardRef, Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { FacebookModule } from '../facebook/facebook.module';
 import { UsersModule } from '../users/users.module';
@@ -15,6 +15,7 @@ import { AppConfigModule } from '@common/modules/config';
     forwardRef(() => FacebookModule),
     UsersModule,
     AppConfigModule,
+    CacheModule.register(),
   ],
   exports: [InstagramAccountsService],
   controllers: [InstagramAccountsController],

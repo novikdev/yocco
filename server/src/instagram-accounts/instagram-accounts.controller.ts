@@ -56,6 +56,6 @@ export class InstagramAccountsController {
         igAccountId: ${igAccountId}
         userId: ${req.user.id}
     `);
-    return this.igAccountsService.getIgAccountStats(req.user.id, igAccountId);
+    return this.igAccountsService.getCachedIgAccountStats(req.user.id, igAccountId);
   }
 }
