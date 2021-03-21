@@ -7,6 +7,7 @@ type Config = {
   AGREEMENT_URL: string;
   SUPPORT_TELEGRAM_URL: string;
   SUPPORT_WHATSAPP_URL: string;
+  VERSION: string;
 };
 
 export const config: Config = {
@@ -14,4 +15,5 @@ export const config: Config = {
   AGREEMENT_URL: envConfig.AGREEMENT_URL,
   SUPPORT_TELEGRAM_URL: envConfig.SUPPORT_TELEGRAM_URL,
   SUPPORT_WHATSAPP_URL: envConfig.SUPPORT_WHATSAPP_URL,
+  VERSION: envConfig.VERSION,
 };
