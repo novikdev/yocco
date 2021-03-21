@@ -11,16 +11,23 @@ import { LogBox } from 'react-native';
 import { reducer } from '@data/reducer';
 import { saga } from '@data/saga';
 import { AppLoading } from 'expo';
+import { useAsyncUpdate } from '@services/hooks/useAsyncUpdate';
+import { Toast } from '@components/Toast';
 
 LogBox.ignoreLogs(['Remote debugger', 'Native splash screen is already hidden']);
 
 export const store = createStore(reducer, saga);
 
 export default function AppInitializer() {
+  useAsyncUpdate();
+
   return (
-    <Provider store={store}>
-      <App />
-    </Provider>
+    <>
+      <Provider store={store}>
+        <App />
+      </Provider>
+      <Toast />
+    </>
   );
 }
 
@@ -32,12 +39,10 @@ function App() {
     return <AppLoading />;
   } else {
     return (
-      <Provider store={store}>
-        <SafeAreaProvider>
-          <Navigation colorScheme={colorScheme} />
-          <StatusBar />
-        </SafeAreaProvider>
-      </Provider>
+      <SafeAreaProvider>
+        <Navigation colorScheme={colorScheme} />
+        <StatusBar />
+      </SafeAreaProvider>
     );
   }
 }

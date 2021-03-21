@@ -48,6 +48,7 @@ export function Login({ navigation }: Props) {
         </Text>
         <FlatList
           data={features}
+          scrollEnabled={false}
           style={{ marginVertical: 30 }}
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item }) => (

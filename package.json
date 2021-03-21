@@ -1,6 +1,5 @@
 {
   "name": "yocco",
-  "version": "0.1.0",
   "main": "index.js",
   "repository": "git@github.com:novikdev/yocco.git",
   "author": "Anton Novik <tehbi4.dev@gmail.com>",
