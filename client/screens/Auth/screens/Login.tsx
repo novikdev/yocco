@@ -25,7 +25,7 @@ export function Login({ navigation }: Props) {
 
   return (
     <ScreenContainer
-      as={SafeAreaView}
+      safeArea="both"
       style={{
         justifyContent: 'space-between',
         alignItems: 'center',

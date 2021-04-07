@@ -36,7 +36,7 @@ export function IgAccountStats() {
   }
 
   return (
-    <ScreenContainer as={SafeAreaView}>
+    <ScreenContainer safeArea="top">
       <Header igAccount={igAccount} />
       <ListTitle />
       <SectionList

@@ -43,7 +43,7 @@ export function SelectDefaultIgAccount(props: Props) {
       {props.firstTime && <Subtitle>позже вы сможете сменить его в настройках</Subtitle>}
       {isLoading(igAccounts.status) ? (
         <ActivityIndicator />
-      ) : igAccounts.data.length !== 0 ? (
+      ) : igAccounts.data.length === 0 ? (
         <>
           <Text color="black" size="h5">
             У вас нет привязанных аккаунтов Instagram
