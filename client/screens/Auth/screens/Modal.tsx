@@ -75,6 +75,7 @@ export function Modal({ navigation }: Props) {
     <ScreenContainer as={SafeAreaView}>
       {isWebViewShown && (
         <WebView
+          incognito
           source={{ uri }}
           style={{ flex: 1 }}
           onNavigationStateChange={handleNavigationStateChange}
