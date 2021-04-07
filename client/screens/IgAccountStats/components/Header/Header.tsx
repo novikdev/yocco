@@ -8,6 +8,8 @@ import { selectIgAccountTempStats } from '@data/igAccountStats/selectors';
 import { useSelector } from 'react-redux';
 import { toStringWithSign } from '../../services/toStringWithSign';
 import { prepareStatsForDisplaying } from '../../services/prepareStatsForDisplaying';
+import { TouchableOpacity } from 'react-native';
+import { openExternalIgAccount } from '@services/openExternalIgAccount';
 
 type Props = {
   igAccount: Pick<IInstagramAccount, 'id' | 'username' | 'profilePicture'>;
@@ -15,18 +17,21 @@ type Props = {
 };
 
 export function Header(props: Props) {
+  const { username } = props.igAccount;
+  const openIgAccount = React.useCallback(() => openExternalIgAccount(username), [username]);
+
   let stats = useSelector(selectIgAccountTempStats);
   stats = stats && prepareStatsForDisplaying(stats);
 
   return (
     <View style={props.style}>
-      <View style={{ flexDirection: 'row' }}>
+      <TouchableOpacity style={{ flexDirection: 'row' }} onPress={openIgAccount} activeOpacity={1}>
         <Avatar source={{ uri: props.igAccount.profilePicture }} size="medium" />
         <View style={{ flexDirection: 'column', marginLeft: 10 }}>
-          <Text size="h4">{props.igAccount.username}</Text>
+          <Text size="h4">{username}</Text>
           <Text size="h5">подписчики</Text>
         </View>
-      </View>
+      </TouchableOpacity>
       <View style={{ flexDirection: 'column', marginLeft: 10, alignItems: 'flex-end' }}>
         {stats ? (
           <>

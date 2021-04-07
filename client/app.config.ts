@@ -40,6 +40,9 @@ const config: ExpoConfig = {
     supportsTablet: true,
     bundleIdentifier: 'ru.yocco',
     buildNumber: VERSION,
+    infoPlist: {
+      LSApplicationQueriesSchemes: ['instagram'],
+    },
   },
   android: {
     package: 'ru.yocco',
