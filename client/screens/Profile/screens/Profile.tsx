@@ -22,7 +22,7 @@ export function Profile() {
 
   const user = useSelector(selectUser)!;
   return (
-    <ScreenContainer as={SafeAreaView}>
+    <ScreenContainer safeArea="top">
       <ScrollView>
         <ProfileHeader>
           <Avatar size="large" source={{ uri: user.defaultInstagramAccount?.profilePicture }} />

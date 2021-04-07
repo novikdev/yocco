@@ -72,7 +72,7 @@ export function Modal({ navigation }: Props) {
   };
 
   return (
-    <ScreenContainer as={SafeAreaView}>
+    <ScreenContainer safeArea="both">
       {isWebViewShown && (
         <WebView
           incognito
