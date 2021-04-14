@@ -100,6 +100,10 @@ export class FacebookService {
     accessToken: string,
   ): Promise<IFbIgAccount[]> {
     try {
+      this.logger.debug(`
+        ===> getPageInstagramAccounts (1)
+          facebookPageId: ${facebookPageId}
+      `);
       const fb = this.fb.withAccessToken(accessToken);
       const fbRes = await fb.api<FbPaginated<IFbIgAccount>>(
         `/${facebookPageId}/instagram_accounts`,
@@ -111,9 +115,19 @@ export class FacebookService {
         ? fbRes.data
         : await this.getRestPages(fbRes.paging.next!, fbRes.data);
 
+      this.logger.debug(`
+        ===> getPageInstagramAccounts (2)
+          facebookPageId: ${facebookPageId}
+          accounts: ${accounts.map(({ username }) => username).join()}
+      `);
       return accounts;
     } catch (err) {
-      throw new Error("Couldn't fetch page's instagram accounts: " + err.message);
+      const errorMsg = "Couldn't fetch page's instagram accounts: " + err.message;
+      this.logger.error(`
+        ===> getPageInstagramAccounts (catch)
+          ${errorMsg}
+      `);
+      throw new Error(errorMsg);
     }
   }
 
@@ -121,14 +135,36 @@ export class FacebookService {
     facebookUserId: string,
     accessToken: string,
   ): Promise<IIgAccount[]> {
+    this.logger.debug(`
+      ===> getAllUserInstagramAccounts (1)
+        facebookUserId: ${facebookUserId}
+    `);
+    let pages: IFbPage[];
     try {
-      const pages = await this.getUserPages(facebookUserId, accessToken);
-      let accounts: IIgAccount[] = [];
-      for (const page of pages) {
-        if (!page.instagram_business_account) {
-          continue;
-        }
+      pages = await this.getUserPages(facebookUserId, accessToken);
+      this.logger.debug(`
+        ===> getAllUserInstagramAccounts (2)
+          pages: ${pages.map(({ id }) => ({ id })).join()}
+      `);
+    } catch (err) {
+      const errorMsg = "Couldn't fetch user's facebook pages: " + err.message;
+      this.logger.error(`
+        ===> getAllUserInstagramAccounts (catch)
+          ${errorMsg}
+      `);
+      throw new Error(errorMsg);
+    }
+    let accounts: IIgAccount[] = [];
+    for (const page of pages) {
+      if (!page.instagram_business_account) {
+        continue;
+      }
 
+      try {
+        this.logger.debug(`
+          ===> getAllUserInstagramAccounts (3)
+            fetch page's (${page.id}) instagram accounts
+        `);
         const pageAccounts = await this.getPageInstagramAccounts(page.id, page.access_token);
 
         accounts = accounts.concat(
@@ -143,11 +179,14 @@ export class FacebookService {
             }),
           ),
         );
+      } catch (err) {
+        this.logger.error(`
+          ===> getAllUserInstagramAccounts (catch)
+            Couldn't fetch fb page's (${page.id}) instagram accounts
+        `);
       }
-      return accounts;
-    } catch (err) {
-      throw new Error("Couldn't fetch all user's instagram accounts: " + err.message);
     }
+    return accounts;
   }
 
   public async getIgAccountFollowersCount(
