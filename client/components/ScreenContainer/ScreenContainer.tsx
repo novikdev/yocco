@@ -33,8 +33,9 @@ type ScreenContainerViewProps = {
   paddingTop?: number;
   paddingBottom?: number;
 };
+
 const ScreenContainerView = styled.View<ScreenContainerViewProps>`
   flex: 1;
-  padding-top: ${({ paddingTop }) => paddingTop ?? 0};
+  padding-top: ${({ paddingTop }) => paddingTop + 'px' ?? 0};
   background-color: ${({ bgColor }) => bgColor};
 `;
