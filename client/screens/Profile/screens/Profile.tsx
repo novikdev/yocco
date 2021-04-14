@@ -1,5 +1,5 @@
 import React from 'react';
-import { Linking, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { Text } from '@components/Text';
 
 import { useDispatch, useSelector } from 'react-redux';
@@ -11,10 +11,10 @@ import { MenuItem } from '../components/MenuItem';
 import { ProfileHeader } from '../components/ProfileHeader';
 import { ProfileFooter } from '../components/ProfileFooter';
 import { useNavigation } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { logout } from '@data/init/actions';
 import { SectionTitle } from '../components/SectionTitle';
 import { config } from '@services/config';
+import { writeToSupport } from '@services/writeToSupport';
 
 export function Profile() {
   const dispatch = useDispatch();
@@ -38,10 +38,10 @@ export function Profile() {
         </MenuItem>
 
         <SectionTitle>Поддержка</SectionTitle>
-        <MenuItem onPress={() => Linking.openURL(config.SUPPORT_TELEGRAM_URL)}>
+        <MenuItem onPress={() => writeToSupport('telegram')}>
           <Text size="h4">Телеграм</Text>
         </MenuItem>
-        <MenuItem onPress={() => Linking.openURL(config.SUPPORT_WHATSAPP_URL)}>
+        <MenuItem onPress={() => writeToSupport('whatsapp')}>
           <Text size="h4">WhatsApp</Text>
         </MenuItem>
 

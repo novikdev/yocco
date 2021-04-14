@@ -3,12 +3,13 @@ import styled from 'styled-components/native';
 import { StackScreenProps } from '@react-navigation/stack';
 import { AuthParamList } from '../types';
 import { Text } from '@components/Text';
-import { Linking, SafeAreaView, View, Image, FlatList } from 'react-native';
+import { Linking, View, Image, FlatList } from 'react-native';
 import { ScreenContainer } from '@components/ScreenContainer';
 import { config } from '@services/config';
 import { Ionicons } from '@expo/vector-icons';
 import logo from '../../../assets/images/icon.png';
 import { theme } from '@services/theme';
+import { writeToSupport } from '@services/writeToSupport';
 
 type Props = StackScreenProps<AuthParamList, 'Login'>;
 
@@ -31,7 +32,7 @@ export function Login({ navigation }: Props) {
         alignItems: 'center',
       }}
     >
-      <View style={{ display: 'flex', height: '15%' }} />
+      <View style={{ display: 'flex', height: '10%' }} />
       <View style={{ height: '70%', width: '100%', padding: 20 }}>
         <Image
           source={logo}
@@ -78,7 +79,7 @@ export function Login({ navigation }: Props) {
       <View
         style={{
           display: 'flex',
-          height: '15%',
+          height: '20%',
           width: '100%',
           justifyContent: 'flex-end',
           alignItems: 'center',
@@ -95,7 +96,31 @@ export function Login({ navigation }: Props) {
           Политика в отношении
           {'\n'}
           обработки персональных данных
+          {'\n'}
         </Text>
+        <Text color="grey" size="body" style={{ textAlign: 'center' }}>
+          Техническая поддержка:
+        </Text>
+        <View style={{ flexDirection: 'row' }}>
+          <Text
+            accessibilityRole="link"
+            color="grey"
+            size="body"
+            style={{ textDecorationLine: 'underline' }}
+            onPress={() => writeToSupport('telegram')}
+          >
+            Telegram
+          </Text>
+          <Text
+            accessibilityRole="link"
+            color="grey"
+            size="body"
+            style={{ marginLeft: 10, textDecorationLine: 'underline' }}
+            onPress={() => writeToSupport('whatsapp')}
+          >
+            Whatsapp
+          </Text>
+        </View>
       </View>
     </ScreenContainer>
   );

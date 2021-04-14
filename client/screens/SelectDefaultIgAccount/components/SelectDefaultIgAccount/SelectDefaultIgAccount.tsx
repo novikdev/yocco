@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { useDispatch, useSelector } from 'react-redux';
 import { selectInstagramAccounts } from '@data/instagramAccounts/selectors';
-import { FlatList, Linking, TouchableOpacity, View } from 'react-native';
+import { FlatList, TouchableOpacity, View } from 'react-native';
 import { CheckIcon } from './components/CheckIcon';
 import { Subtitle, Title } from '@components/Title';
 import { Avatar } from '@components/Avatar';
@@ -15,7 +15,7 @@ import { theme } from '@services/theme';
 import { selectDefaultIgAccount } from '@data/user/selectors';
 import { useNavigation } from '@react-navigation/native';
 import { Text } from '@components/Text';
-import { config } from '@services/config';
+import { writeToSupport } from '@services/writeToSupport';
 
 type Props = {
   firstTime?: boolean;
@@ -59,7 +59,7 @@ export function SelectDefaultIgAccount(props: Props) {
             color="blue"
             size="h4"
             style={{ textAlign: 'center', textDecorationLine: 'underline' }}
-            onPress={() => Linking.openURL(config.SUPPORT_TELEGRAM_URL)}
+            onPress={() => writeToSupport('telegram')}
           >
             Написать в Телеграм{'\n\n'}
           </Text>
@@ -68,7 +68,7 @@ export function SelectDefaultIgAccount(props: Props) {
             color="blue"
             size="h4"
             style={{ textAlign: 'center', textDecorationLine: 'underline' }}
-            onPress={() => Linking.openURL(config.SUPPORT_WHATSAPP_URL)}
+            onPress={() => writeToSupport('whatsapp')}
           >
             Написать в WhatsApp
           </Text>
