@@ -376,7 +376,8 @@ export class InstagramAccountsService {
       let insights;
       try {
         totalFollowersCount = JSON.parse(responses[followersCountResIndex].body)?.followers_count;
-        insights = JSON.parse(responses[insightsResIndex].body)?.data[0].values[1];
+        // NOTE: insights can be undefined cause the FB issue (https://developers.facebook.com/support/bugs/2834080103525346/)
+        insights = JSON.parse(responses[insightsResIndex].body)?.data[0]?.values[1];
       } catch (err) {
         console.error(err);
         return null;
@@ -388,17 +389,19 @@ export class InstagramAccountsService {
       let deltaFollowersCount = 0;
 
       if (lastSavedStats) {
-        followsCount = insights.value;
+        followsCount = insights ? insights.value : null;
         deltaFollowersCount = totalFollowersCount - lastSavedStats.totalFollowersCount;
 
-        const lastSavedStatsFbDay = format(
-          new Date(lastSavedStats.rawFollowsDatetime),
-          DATE_ISO_FORMAT,
-        );
-        const resStatsFbDay = format(new Date(insights.end_time), DATE_ISO_FORMAT);
+        if (insights) {
+          const lastSavedStatsFbDay = format(
+            new Date(lastSavedStats.rawFollowsDatetime),
+            DATE_ISO_FORMAT,
+          );
+          const resStatsFbDay = format(new Date(insights.end_time), DATE_ISO_FORMAT);
 
-        if (lastSavedStatsFbDay === resStatsFbDay) {
-          followsCount = followsCount - lastSavedStats.rawFollowsCount;
+          if (lastSavedStatsFbDay === resStatsFbDay) {
+            followsCount = followsCount - lastSavedStats.rawFollowsCount;
+          }
         }
       }
 
@@ -406,11 +409,11 @@ export class InstagramAccountsService {
         igAccountId: igAccount.id,
         datetime: new Date(),
         followsCount,
-        unfollowsCount: followsCount - deltaFollowersCount,
+        unfollowsCount: insights ? followsCount - deltaFollowersCount : null,
         deltaFollowersCount,
         totalFollowersCount,
-        rawFollowsCount: insights.value,
-        rawFollowsDatetime: insights.end_time,
+        rawFollowsCount: insights ? insights.value : null,
+        rawFollowsDatetime: insights ? insights.end_time : null,
       };
     });
   }

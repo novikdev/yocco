@@ -43,15 +43,19 @@ export function Header(props: Props) {
                 <Text size="h5" color="blue">
                   {toStringWithSign(stats.deltaFollowersCount)}
                 </Text>
-                {' ('}
-                <Text size="h5" color="green">
-                  {toStringWithSign(stats.followsCount)}
-                </Text>
-                /
-                <Text size="h5" color="red">
-                  {toStringWithSign(stats.unfollowsCount * -1)}
-                </Text>
-                {')'}
+                {stats.followsCount && stats.unfollowsCount && (
+                  <>
+                    {' ('}
+                    <Text size="h5" color="green">
+                      {toStringWithSign(stats.followsCount)}
+                    </Text>
+                    /
+                    <Text size="h5" color="red">
+                      {toStringWithSign(stats.unfollowsCount * -1)}
+                    </Text>
+                    {')'}
+                  </>
+                )}
               </Text>
             </View>
           </>

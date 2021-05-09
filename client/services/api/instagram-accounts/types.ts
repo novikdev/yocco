@@ -8,7 +8,7 @@ export interface IInstagramAccount {
 export interface IHourIgAccountStats {
   datetime: string;
   deltaFollowersCount: number;
-  followsCount: number;
-  unfollowsCount: number;
+  followsCount: number | null;
+  unfollowsCount: number | null;
   totalFollowersCount: number;
 }

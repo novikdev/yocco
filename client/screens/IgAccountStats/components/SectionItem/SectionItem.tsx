@@ -29,7 +29,7 @@ function SectionItem(props: Props) {
         <Delta value={stats.followsCount} />
       </Column>
       <Column>
-        <Delta value={stats.unfollowsCount * -1} />
+        <Delta value={stats.unfollowsCount && stats.unfollowsCount * -1} />
       </Column>
       <Column width={90}>
         <Text size="body" color={theme.colors.black}>

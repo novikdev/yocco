@@ -5,10 +5,10 @@ export class IgAccountHourStatsDto {
   datetime: Date;
 
   @ApiProperty()
-  followsCount: number;
+  followsCount: number | null;
 
   @ApiProperty()
-  unfollowsCount: number;
+  unfollowsCount: number | null;
 
   @ApiProperty()
   deltaFollowersCount: number;
